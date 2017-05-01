@@ -37,6 +37,7 @@ class OperatorTranslator {
   inline std::shared_ptr<OperatorTask> translate(const proto::ExportBinaryOperator&);
   inline std::shared_ptr<OperatorTask> translate(const proto::IndexColumnScanOperator&);
   inline std::shared_ptr<OperatorTask> translate(const proto::NestedLoopJoinOperator&);
+  inline std::shared_ptr<OperatorTask> translate(const proto::CreateIndexOperator&);
   std::vector<std::shared_ptr<OperatorTask>> _tasks;
   std::shared_ptr<OperatorTask> _root_task;
 };

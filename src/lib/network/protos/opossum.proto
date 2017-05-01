@@ -41,6 +41,7 @@ message OperatorVariant {
     ExportBinaryOperator export_binary = 11;
     IndexColumnScanOperator index_column_scan = 12;
     NestedLoopJoinOperator nested_loop_join = 13;
+    CreateIndexOperator create_index = 14;
   }
 }
 
@@ -134,6 +135,11 @@ message DifferenceOperator {
   OperatorVariant right_operator = 2;
 }
 
+message CreateIndexOperator {
+  OperatorVariant input_operator = 1;
+  string table_name = 2;
+  string column_name = 3;
+}
 
 // Response
 

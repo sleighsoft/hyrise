@@ -8,6 +8,7 @@
 #include "../common.hpp"
 #include "../operators/abstract_join_operator.hpp"
 #include "../operators/abstract_operator.hpp"
+#include "../operators/create_index.hpp"
 #include "../operators/difference.hpp"
 #include "../operators/export_binary.hpp"
 #include "../operators/export_csv.hpp"
@@ -317,6 +318,26 @@ inline std::shared_ptr<OperatorTask> OperatorTranslator::translate(const proto::
   return print_task;
 }
 
+inline std::shared_ptr<OperatorTask> OperatorTranslator::translate(
+    const proto::CreateIndexOperator& create_index_operator) {
+  const auto& table_name = create_index_operator.table_name();
+  const auto& column_name = create_index_operator.column_name();
+
+  if (!create_index_operator.has_input_operator()) {
+    throw std::runtime_error("Missing Input Operator in Create Index.");
+  }
+
+  auto input_task = translate_proto(create_index_operator.input_operator());
+
+  auto create_index = std::make_shared<CreateIndex>(input_task->get_operator(), table_name, column_name);
+  auto create_task = std::make_shared<OperatorTask>(create_index);
+
+  input_task->set_as_predecessor_of(create_task);
+  _tasks.push_back(create_task);
+
+  return create_task;
+}
+
 const std::vector<std::shared_ptr<OperatorTask>>& OperatorTranslator::build_tasks_from_proto(
     const proto::OperatorVariant& op) {
   translate_proto(op);
@@ -353,6 +374,8 @@ std::shared_ptr<OperatorTask> OperatorTranslator::translate_proto(const proto::O
       return translate(op.index_column_scan());
     case proto::OperatorVariant::kNestedLoopJoin:
       return translate(op.nested_loop_join());
+    case proto::OperatorVariant::kCreateIndex:
+      return translate(op.create_index());
     case proto::OperatorVariant::OPERATOR_NOT_SET:
       throw std::runtime_error(
           "Operator not set. Missing dependency. Cannot translate proto object to opossum operator.");
