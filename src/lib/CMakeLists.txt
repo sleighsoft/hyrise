@@ -86,6 +86,8 @@ set(
     operators/aggregate.hpp
     operators/commit_records.cpp
     operators/commit_records.hpp
+    operators/create_index.cpp
+    operators/create_index.hpp
     operators/delete.cpp
     operators/delete.hpp
     operators/difference.cpp
