@@ -3,11 +3,19 @@
 #include <memory>
 #include <string>
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 #include "network/generated/opossum.grpc.pb.h"
+#pragma GCC diagnostic pop
+
 #include "storage/column_visitable.hpp"
 #include "storage/dictionary_column.hpp"
 #include "storage/reference_column.hpp"
 #include "storage/value_column.hpp"
+
+#include "resolve_type.hpp"
+#include "type_cast.hpp"
 
 namespace opossum {
 

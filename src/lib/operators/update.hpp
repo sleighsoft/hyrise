@@ -27,15 +27,12 @@ class Update : public AbstractReadWriteOperator {
 
   ~Update();
 
-  void commit_records(const CommitID cid) override;
-  void rollback_records() override;
-
   const std::string name() const override;
   uint8_t num_in_tables() const override;
 
  protected:
   std::shared_ptr<const Table> on_execute(std::shared_ptr<TransactionContext> context) override;
-  bool _execution_input_valid(const std::shared_ptr<TransactionContext> context) const;
+  bool _execution_input_valid(const std::shared_ptr<TransactionContext>& context) const;
 
  protected:
   const std::string _table_to_update_name;

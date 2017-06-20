@@ -39,6 +39,8 @@ class OperatorTranslatorTest : public BaseTest {
  protected:
   void SetUp() override {
     _test_table = load_table("src/test/tables/int_string2.tbl", 2);
+    // At this point it would be too complicated to replace the test tables with TableWrapper. Because the TableWrapper
+    // operator would have to be translated by the network module.
     StorageManager::get().add_table("TestTable", _test_table);
 
     std::shared_ptr<Table> test_table_int_float = load_table("src/test/tables/int_float.tbl", 5);
@@ -366,7 +368,7 @@ TEST_F(OperatorTranslatorTest, ImportCsv) {
   auto msg = proto::OperatorVariant();
   proto::ImportCsvOperator* import_csv_operator = msg.mutable_import_csv();
   import_csv_operator->set_directory("src/test/csv");
-  import_csv_operator->set_filename("float");
+  import_csv_operator->set_filename("float.csv");
 
   OperatorTranslator translator;
   auto& tasks = translator.build_tasks_from_proto(msg);
@@ -592,7 +594,7 @@ TEST_F(OperatorTranslatorTest, ProjectionMissingInput) {
   projection_operator->add_column_name("a");
 
   OperatorTranslator translator;
-  EXPECT_THROW(translator.build_tasks_from_proto(msg), std::runtime_error);
+  EXPECT_THROW(translator.build_tasks_from_proto(msg), std::logic_error);
 }
 
 TEST_F(OperatorTranslatorTest, ProjectionIncompleteInput) {
@@ -602,7 +604,7 @@ TEST_F(OperatorTranslatorTest, ProjectionIncompleteInput) {
   projection_operator->mutable_input_operator();
 
   OperatorTranslator translator;
-  EXPECT_THROW(translator.build_tasks_from_proto(msg), std::runtime_error);
+  EXPECT_THROW(translator.build_tasks_from_proto(msg), std::logic_error);
 }
 
 }  // namespace opossum

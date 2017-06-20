@@ -5,7 +5,6 @@
 #include <vector>
 
 #include "abstract_read_write_operator.hpp"
-#include "table_scan.hpp"
 
 namespace opossum {
 
@@ -26,6 +25,8 @@ class Delete : public AbstractReadWriteOperator {
   const std::string name() const override;
   uint8_t num_in_tables() const override;
 
+  void finish_commit() override;
+
  protected:
   std::shared_ptr<const Table> on_execute(std::shared_ptr<TransactionContext> context) override;
 
@@ -33,7 +34,7 @@ class Delete : public AbstractReadWriteOperator {
   /**
    * Validates the context and the input table
    */
-  bool _execution_input_valid(const std::shared_ptr<TransactionContext> context) const;
+  bool _execution_input_valid(const std::shared_ptr<TransactionContext>& context) const;
 
  private:
   const std::string _table_name;

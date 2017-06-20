@@ -5,10 +5,13 @@
 #include <memory>
 #include <sstream>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include "../lib/concurrency/transaction_manager.hpp"
 #include "../lib/storage/storage_manager.hpp"
+#include "../lib/storage/table.hpp"
+#include "../lib/type_cast.hpp"
 
 namespace opossum {
 
@@ -136,6 +139,11 @@ std::shared_ptr<Table> BaseTest::load_table(const std::string &file_name, size_t
   std::shared_ptr<Table> test_table = std::make_shared<Table>(chunk_size);
 
   std::ifstream infile(file_name);
+
+  if (!infile.is_open()) {
+    throw std::runtime_error("load_table: Could not find file " + file_name);
+  }
+
   std::string line;
 
   std::getline(infile, line);
@@ -153,8 +161,8 @@ std::shared_ptr<Table> BaseTest::load_table(const std::string &file_name, size_t
     test_table->append(values);
 
     auto &chunk = test_table->get_chunk(test_table->chunk_count() - 1);
-    auto &mvcc_cols = chunk.mvcc_columns();
-    mvcc_cols.begin_cids.back() = 0;
+    auto mvcc_cols = chunk.mvcc_columns();
+    mvcc_cols->begin_cids.back() = 0;
   }
   return test_table;
 }
