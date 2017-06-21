@@ -12,6 +12,7 @@ set(
     network/response_builder_test.cpp
     network/server_test.cpp
     operators/aggregate_test.cpp
+    operators/create_index_test.cpp
     operators/delete_test.cpp
     operators/difference_test.cpp
     operators/export_binary_test.cpp

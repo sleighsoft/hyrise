@@ -5,6 +5,7 @@
 #include "gtest/gtest.h"
 
 #include "../../lib/operators/create_index.hpp"
+#include "../../lib/storage/dictionary_compression.hpp"
 #include "../../lib/operators/get_table.hpp"
 #include "../../lib/storage/storage_manager.hpp"
 #include "../../lib/storage/table.hpp"
@@ -15,9 +16,8 @@ class OperatorsCreateIndexTest : public BaseTest {
  protected:
   void SetUp() override {
     std::shared_ptr<Table> test_table = load_table("src/test/tables/int_float.tbl", 0);
+    DictionaryCompression::compress_table(*test_table);
     StorageManager::get().add_table("table_a", std::move(test_table));
-
-    StorageManager::get().get_table("table_a")->compress_chunk(0);
 
     _gt = std::make_shared<GetTable>("table_a");
     _gt->execute();
