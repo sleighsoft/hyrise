@@ -601,12 +601,10 @@ std::shared_ptr<AbstractASTNode> SQLToASTTranslator::_translate_order_by(
   order_by_definitions.reserve(order_list.size());
 
   for (const auto& order_description : order_list) {
-    const auto& order_expr = *order_description->expr;
+    const auto& order_hsql_expr = *order_description->expr;
+    const auto order_expr = SQLExpressionTranslator::translate_expression(order_hsql_expr, input_node);
 
-    // TODO(anybody): handle non-column refs
-    DebugAssert(order_expr.isType(hsql::kExprColumnRef), "Can only order by columns for now.");
-
-    const auto column_id = SQLExpressionTranslator::get_column_id_for_expression(order_expr, input_node);
+    const auto column_id = input_node->get_column_id_for_expression(order_expr);
     const auto order_by_mode = order_type_to_order_by_mode.at(order_description->type);
 
     order_by_definitions.emplace_back(column_id, order_by_mode);

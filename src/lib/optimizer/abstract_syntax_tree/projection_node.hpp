@@ -29,6 +29,8 @@ class ProjectionNode : public AbstractASTNode {
   optional<ColumnID> find_column_id_by_named_column_reference(
       const NamedColumnReference& named_column_reference) const override;
 
+  optional<ColumnID> find_column_id_for_expression(const std::shared_ptr<Expression>& expression) const override;
+
   std::vector<ColumnID> get_output_column_ids_for_table(const std::string& table_name) const override;
 
  protected:

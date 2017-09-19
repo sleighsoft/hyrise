@@ -117,6 +117,26 @@ class AbstractASTNode : public std::enable_shared_from_this<AbstractASTNode> {
       const NamedColumnReference &named_column_reference) const;
   // @}
 
+  // @{
+  /**
+   * AbstractASTNode::find_column_id_for_expression() looks for the @param expression in the columns this
+   * node outputs, checking by semantic and NOT by Expression object's address. If it can find it, it will be returned,
+   * otherwise nullopt is returned.
+   * AbstractASTNode::get_column_id_for_expression() is more strict and will fail, if the
+   * @param expression cannot be found
+   *
+   * Since we're using a TableScan added AFTER the actual aggregate to implement HAVING, in a query like
+   * `SELECT MAX(a) FROM t1 GROUP BY b HAVING MAX(a) > 10`
+   * we need get the column that contains the `MAX(a)` in the table produced by the Aggregate. This is what this
+   * function is used for.
+   *
+   * NOTE: These functions will possibly result in a full recursive traversal of the ancestors of this node.
+   */
+  virtual optional<ColumnID> find_column_id_for_expression(const std::shared_ptr<Expression>& expression) const;
+  ColumnID get_column_id_for_expression(const std::shared_ptr<Expression>& expression) const;
+  // @}
+
+
   /**
    * Checks whether this node or any of its ancestors retrieve the table @param table_name from the StorageManager
    * (or - TODO(anybody) - once subquery ALIASES are implemented whether it or any of its ancestors assign an ALIAS

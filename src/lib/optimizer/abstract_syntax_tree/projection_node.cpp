@@ -139,6 +139,18 @@ optional<ColumnID> ProjectionNode::find_column_id_by_named_column_reference(
   return result_column_id;
 }
 
+optional<ColumnID> ProjectionNode::find_column_id_for_expression(const std::shared_ptr<Expression>& expression) const {
+  auto iter = std::find_if(_column_expressions.begin(), _column_expressions.end(), [&](const auto & rhs) {
+    return *expression == *rhs;
+  });
+
+  if (iter == _column_expressions.end()) {
+    return nullopt;
+  } else {
+    return ColumnID{static_cast<ColumnID::base_type>(std::distance(_column_expressions.begin(), iter))};
+  }
+}
+
 std::vector<ColumnID> ProjectionNode::get_output_column_ids_for_table(const std::string& table_name) const {
   DebugAssert(left_child(), "ProjectionNode needs a child.");
 

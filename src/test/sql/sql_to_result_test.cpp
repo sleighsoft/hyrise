@@ -145,6 +145,7 @@ const SQLTestParam test_queries[] = {
     {"SELECT * FROM int_float4 ORDER BY a, b;", "src/test/tables/int_float2_sorted.tbl", OrderSensitivity::Sensitive},
     {"SELECT a FROM (SELECT a, b FROM int_float WHERE a > 1 ORDER BY b) WHERE a > 0 ORDER BY a;",
      "src/test/tables/int.tbl", OrderSensitivity::Sensitive},
+    {"SELECT a*b FROM int_int3 ORDER BY a*b", "src/test/tables/int_int3_multiplied_sorted.tbl", OrderSensitivity::Sensitive},
 
     // LIMIT
     {"SELECT * FROM int_int3 LIMIT 4;", "src/test/tables/int_int3_limit_4.tbl"},

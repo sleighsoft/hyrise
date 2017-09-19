@@ -7,6 +7,7 @@
 #include <string>
 #include <vector>
 
+#include "optimizer/expression.hpp"
 #include "optimizer/table_statistics.hpp"
 #include "types.hpp"
 #include "utils/assert.hpp"
@@ -120,6 +121,24 @@ optional<ColumnID> AbstractASTNode::find_column_id_by_named_column_reference(
    */
   DebugAssert(_left_child, "Node has no left child and therefore must override this function.");
   return _left_child->find_column_id_by_named_column_reference(named_column_reference);
+}
+
+optional<ColumnID> AbstractASTNode::find_column_id_for_expression(const std::shared_ptr<Expression>& expression) const {
+  /**
+   * By default, nodes will just look for ColumnIDs, Projection and Aggregate provide overrides of this function
+   */
+  DebugAssert(expression->type() == ExpressionType::Column,
+              "Only Columns can be looked up in non Projection/Aggregate nodes");
+  DebugAssert(expression->column_id() < output_col_count(), "ColumnID out of range");
+
+  return expression->column_id();
+}
+
+ColumnID AbstractASTNode::get_column_id_for_expression(const std::shared_ptr<Expression>& expression) const {
+  const auto column_id = find_column_id_for_expression(expression);
+  DebugAssert(column_id,
+              std::string("Expression ") + expression->to_string() + " could not be resolved.");
+  return *column_id;
 }
 
 bool AbstractASTNode::knows_table(const std::string &table_name) const {
