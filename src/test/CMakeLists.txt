@@ -51,6 +51,7 @@ set(
     optimizer/expression_test.cpp
     optimizer/table_statistics_join_test.cpp
     optimizer/strategy/join_detection_rule_test.cpp
+    optimizer/strategy/join_reordering_rule_test.cpp
     optimizer/strategy/predicate_reordering_test.cpp
     optimizer/strategy/strategy_base_test.cpp
     optimizer/table_statistics_test.cpp
