@@ -104,9 +104,9 @@ std::vector<JoinEdge> DPsize::_find_edges_between_sets(const TableNodeSet &left,
   std::vector<JoinEdge> edges;
 
   for (const auto & edge : edges) {
-    if (left.test(edge.node_indices[0]) && right.test(edge.node_indices[1])) {
+    if (left.test(edge.node_indices.first) && right.test(edge.node_indices.second)) {
       edges.emplace_back(edge);
-    } else if (right.test(edge.node_indices[0]) && left.test(edge.node_indices[1])) {
+    } else if (right.test(edge.node_indices.first) && left.test(edge.node_indices.second)) {
       edges.emplace_back(edge);
     }
   }

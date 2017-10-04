@@ -1,6 +1,12 @@
 #pragma once
 
+#include <limits>
+
 namespace opossum {
+
+using JoinVertexId = size_t; // TODO(moritz) Strong typedef
+
+constexpr static JoinVertexId INVALID_JOIN_VERTEX_ID = std::numeric_limits<JoinVertexId>::max();
 
 struct JoinPredicate {
   // TODO(moritz) ensure no crosses and naturals here
@@ -12,7 +18,8 @@ struct JoinPredicate {
 
 struct JoinEdge {
   JoinPredicate predicate;
-  size_t node_indices[2] = {0, 0};
+  std::pair<JoinVertexId, JoinVertexId> node_indices{INVALID_JOIN_VERTEX_ID, INVALID_JOIN_VERTEX_ID};
+
 };
 
 }
