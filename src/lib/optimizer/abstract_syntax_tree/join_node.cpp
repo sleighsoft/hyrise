@@ -48,7 +48,10 @@ const std::vector<ColumnID> &JoinNode::output_column_id_to_input_column_id() con
   return _output_column_id_to_input_column_id;
 }
 
-const std::vector<std::string> &JoinNode::output_column_names() const { return _output_column_names; }
+const std::vector<std::string> &JoinNode::output_column_names() const {
+  Assert(left_child(), "Child not set, can't know output column names without it");
+  return _output_column_names;
+}
 
 optional<ColumnID> JoinNode::find_column_id_by_named_column_reference(
     const NamedColumnReference &named_column_reference) const {

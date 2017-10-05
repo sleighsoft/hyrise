@@ -112,7 +112,10 @@ void AggregateNode::_on_child_changed() {
   }
 }
 
-const std::vector<std::string>& AggregateNode::output_column_names() const { return _output_column_names; }
+const std::vector<std::string>& AggregateNode::output_column_names() const {
+  Assert(left_child(), "Child not set, can't know output column names without it");
+  return _output_column_names;
+}
 
 const std::vector<ColumnID>& AggregateNode::output_column_id_to_input_column_id() const {
   return _output_column_id_to_input_column_id;

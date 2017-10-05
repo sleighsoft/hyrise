@@ -57,6 +57,7 @@ void ProjectionNode::_on_child_changed() {
       _output_column_id_to_input_column_id.emplace_back(expression->column_id());
 
       if (!expression->alias()) {
+        Assert(expression->column_id() < left_child()->output_column_names().size(), "ColumnID out of range");
         const auto& column_name = left_child()->output_column_names()[expression->column_id()];
         _output_column_names.emplace_back(column_name);
       }
