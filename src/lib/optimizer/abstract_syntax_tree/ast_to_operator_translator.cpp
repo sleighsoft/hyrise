@@ -157,7 +157,7 @@ std::shared_ptr<AbstractOperator> ASTToOperatorTranslator::_translate_join_node(
   }
 
   return std::make_shared<JoinSortMerge>(input_left_operator, input_right_operator, join_node->join_mode(),
-                                           *(join_node->join_column_ids()), *(join_node->scan_type()));
+                                         *(join_node->join_column_ids()), *(join_node->scan_type()));
 }
 
 std::shared_ptr<AbstractOperator> ASTToOperatorTranslator::_translate_aggregate_node(
