@@ -22,14 +22,15 @@ struct ResolvedColumn {
  */
 class JoinReorderingRule : public AbstractRule {
  public:
-  bool apply_to(const std::shared_ptr<AbstractASTNode> &node) override;
+  bool apply_to(const std::shared_ptr<AbstractASTNode>& node) override;
 
-  static bool search_join_graph(const std::shared_ptr<AbstractASTNode> &node,
-                                 std::vector<std::shared_ptr<AbstractASTNode>> &o_vertices,
-                                 std::vector<JoinEdge> &o_edges,
-                                 ColumnID column_id_offset = ColumnID{0});
+  static bool search_join_graph(const std::shared_ptr<AbstractASTNode>& node,
+                                std::vector<std::shared_ptr<AbstractASTNode>>& o_vertices,
+                                std::vector<JoinEdge>& o_edges, ColumnID column_id_offset = ColumnID{0});
+
  private:
-  ResolvedColumn _resolve_column_id(const std::vector<std::shared_ptr<AbstractASTNode>> & nodes, ColumnID column_id) const;
+  ResolvedColumn _resolve_column_id(const std::vector<std::shared_ptr<AbstractASTNode>>& nodes,
+                                    ColumnID column_id) const;
 };
 
 }  // namespace opossum

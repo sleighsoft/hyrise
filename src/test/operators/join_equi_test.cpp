@@ -11,9 +11,9 @@
 
 #include "../../lib/operators/get_table.hpp"
 #include "../../lib/operators/join_hash.hpp"
-#include "../../lib/operators/join_sort_merge.hpp"
 #include "../../lib/operators/join_nested_loop_a.hpp"
 #include "../../lib/operators/join_nested_loop_b.hpp"
+#include "../../lib/operators/join_sort_merge.hpp"
 #include "../../lib/operators/table_scan.hpp"
 #include "../../lib/operators/union_all.hpp"
 #include "../../lib/storage/storage_manager.hpp"

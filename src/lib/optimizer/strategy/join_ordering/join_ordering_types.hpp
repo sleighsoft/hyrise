@@ -4,7 +4,7 @@
 
 namespace opossum {
 
-using JoinVertexId = size_t; // TODO(moritz) Strong typedef
+using JoinVertexId = size_t;  // TODO(moritz) Strong typedef
 
 constexpr static JoinVertexId INVALID_JOIN_VERTEX_ID = std::numeric_limits<JoinVertexId>::max();
 
@@ -19,7 +19,5 @@ struct JoinPredicate {
 struct JoinEdge {
   JoinPredicate predicate;
   std::pair<JoinVertexId, JoinVertexId> node_indices{INVALID_JOIN_VERTEX_ID, INVALID_JOIN_VERTEX_ID};
-
 };
-
 }

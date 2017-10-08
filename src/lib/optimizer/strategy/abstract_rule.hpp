@@ -17,7 +17,7 @@ class AbstractRule {
    * The optimizer will pass the immutable ASTRootNode to this function.
    * @return whether the rule changed the AST, used to stop the optimizers iteration
    */
-  virtual bool apply_to(const std::shared_ptr<AbstractASTNode> &root) = 0;
+  virtual bool apply_to(const std::shared_ptr<AbstractASTNode>& root) = 0;
 
  protected:
   /**

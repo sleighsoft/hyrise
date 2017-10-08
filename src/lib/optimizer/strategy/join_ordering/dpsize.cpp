@@ -1,26 +1,20 @@
 #include "dpsize.hpp"
 
-#include <unordered_map>
 #include <bitset>
+#include <unordered_map>
 
-#include "utils/assert.hpp"
 #include "optimizer/abstract_syntax_tree/abstract_ast_node.hpp"
 #include "optimizer/abstract_syntax_tree/join_node.hpp"
 #include "optimizer/abstract_syntax_tree/predicate_node.hpp"
 #include "optimizer/table_statistics.hpp"
+#include "utils/assert.hpp"
 
 namespace opossum {
 
-DPsize::DPsize(const std::vector<std::shared_ptr<AbstractASTNode>> & tables,
-       const std::vector<JoinEdge> & edges):
-  m_tables(tables),
-  m_edges(edges)
-{
-
-}
+DPsize::DPsize(const std::vector<std::shared_ptr<AbstractASTNode>>& tables, const std::vector<JoinEdge>& edges)
+    : m_tables(tables), m_edges(edges) {}
 
 std::shared_ptr<AbstractASTNode> DPsize::run() {
-
   std::vector<JoinTableNode> table_nodes(m_tables.size());
   for (size_t table_idx = 0; table_idx < m_tables.size(); ++table_idx) {
     table_nodes[table_idx] = JoinTableNode{m_tables[table_idx], table_idx};
@@ -46,8 +40,8 @@ std::shared_ptr<AbstractASTNode> DPsize::run() {
       const auto left_sets = _generate_subsets_of_size(left_plan_size, m_tables.size());
       const auto right_sets = _generate_subsets_of_size(right_plan_size, m_tables.size());
 
-      for (const auto & left_set : left_sets) {
-        for (const auto & right_set : right_sets) {
+      for (const auto& left_set : left_sets) {
+        for (const auto& right_set : right_sets) {
           if ((left_set & right_set).any()) continue;
 
           const auto join_edges = _find_edges_between_sets(left_set, right_set);
@@ -99,11 +93,11 @@ std::vector<TableNodeSet> DPsize::_generate_subsets_of_size(uint32_t set_size, u
   return result;
 }
 
-std::vector<JoinEdge> DPsize::_find_edges_between_sets(const TableNodeSet &left, const TableNodeSet &right) const {
+std::vector<JoinEdge> DPsize::_find_edges_between_sets(const TableNodeSet& left, const TableNodeSet& right) const {
   // TODO(moritz) Can linear lookup be avoided?
   std::vector<JoinEdge> edges;
 
-  for (const auto & edge : edges) {
+  for (const auto& edge : edges) {
     if (left.test(edge.node_indices.first) && right.test(edge.node_indices.second)) {
       edges.emplace_back(edge);
     } else if (right.test(edge.node_indices.first) && left.test(edge.node_indices.second)) {
@@ -114,9 +108,9 @@ std::vector<JoinEdge> DPsize::_find_edges_between_sets(const TableNodeSet &left,
   return edges;
 }
 
-std::shared_ptr<JoinPlanNode> DPsize::_join_plans(const std::shared_ptr<JoinPlanNode> & best_plan_left,
-                                                  const std::shared_ptr<JoinPlanNode> & best_plan_right,
-                                                  const std::vector<JoinEdge> & join_edges) const {
+std::shared_ptr<JoinPlanNode> DPsize::_join_plans(const std::shared_ptr<JoinPlanNode>& best_plan_left,
+                                                  const std::shared_ptr<JoinPlanNode>& best_plan_right,
+                                                  const std::vector<JoinEdge>& join_edges) const {
   auto min_row_count = std::numeric_limits<float>::max();
   auto min_row_count_edge_idx = size_t{0};
 
@@ -125,11 +119,10 @@ std::shared_ptr<JoinPlanNode> DPsize::_join_plans(const std::shared_ptr<JoinPlan
   best_plan_node->right_child = best_plan_right;
 
   for (size_t join_edge_idx = 0; join_edge_idx < join_edges.size(); ++join_edge_idx) {
-    auto & edge = m_edges[join_edge_idx];
+    auto& edge = m_edges[join_edge_idx];
 
     auto statistics = best_plan_left->statistics->generate_predicated_join_statistics(
-      best_plan_right->statistics, edge.predicate.mode, edge.predicate.column_ids, edge.predicate.scan_type
-    );
+        best_plan_right->statistics, edge.predicate.mode, edge.predicate.column_ids, edge.predicate.scan_type);
 
     if (statistics->row_count() < min_row_count) {
       min_row_count = statistics->row_count();
@@ -148,19 +141,19 @@ std::shared_ptr<JoinPlanNode> DPsize::_join_plans(const std::shared_ptr<JoinPlan
   return best_plan_node;
 }
 
-std::shared_ptr<AbstractASTNode> DPsize::_build_join_tree(const std::shared_ptr<JoinPlanNode> & plan_node) const {
+std::shared_ptr<AbstractASTNode> DPsize::_build_join_tree(const std::shared_ptr<JoinPlanNode>& plan_node) const {
   if (plan_node->table_idx) {
     return m_tables[*plan_node->table_idx];
   }
 
-  auto join_node = std::make_shared<JoinNode>(plan_node->join_predicate.mode,
-                                              plan_node->join_predicate.column_ids,
+  auto join_node = std::make_shared<JoinNode>(plan_node->join_predicate.mode, plan_node->join_predicate.column_ids,
                                               plan_node->join_predicate.scan_type);
 
   auto root_node = std::static_pointer_cast<AbstractASTNode>(join_node);
 
-  for (auto & predicate : plan_node->pending_predicates) {
-    auto predicate_node = std::make_shared<PredicateNode>(predicate.column_ids.first, predicate.scan_type, predicate.column_ids.second);
+  for (auto& predicate : plan_node->pending_predicates) {
+    auto predicate_node =
+        std::make_shared<PredicateNode>(predicate.column_ids.first, predicate.scan_type, predicate.column_ids.second);
     predicate_node->set_left_child(root_node);
     root_node = predicate_node;
   }
@@ -170,5 +163,4 @@ std::shared_ptr<AbstractASTNode> DPsize::_build_join_tree(const std::shared_ptr<
 
   return join_node;
 }
-
 }

@@ -20,7 +20,7 @@
 namespace opossum {
 
 struct JoinDetectionTestParam {
-  JoinDetectionTestParam(const std::string &query, const uint8_t number_of_detectable_cross_joins)
+  JoinDetectionTestParam(const std::string& query, const uint8_t number_of_detectable_cross_joins)
       : query(query), number_of_detectable_cross_joins(number_of_detectable_cross_joins) {}
 
   const std::string query;
@@ -41,7 +41,7 @@ class JoinDetectionRuleTest : public StrategyBaseTest, public ::testing::WithPar
     _rule = std::make_shared<JoinConditionDetectionRule>();
   }
 
-  uint8_t _count_cross_joins(const std::shared_ptr<AbstractASTNode> &node) {
+  uint8_t _count_cross_joins(const std::shared_ptr<AbstractASTNode>& node) {
     uint8_t count = 0u;
     if (node->type() == ASTNodeType::Join) {
       const auto join_node = std::dynamic_pointer_cast<JoinNode>(node);
