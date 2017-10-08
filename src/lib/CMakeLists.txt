@@ -200,6 +200,8 @@ set(
     optimizer/strategy/join_reordering_rule.hpp
     optimizer/strategy/join_ordering/dpsize.cpp
     optimizer/strategy/join_ordering/dpsize.hpp
+    optimizer/strategy/join_ordering/join_graph.cpp
+    optimizer/strategy/join_ordering/join_graph.hpp
     optimizer/strategy/join_ordering/join_ordering_types.hpp
     optimizer/strategy/predicate_reordering_rule.cpp
     optimizer/strategy/predicate_reordering_rule.hpp

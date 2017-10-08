@@ -21,17 +21,16 @@ class JoinReorderingRuleTest : public BaseTest {
 
   void TearDown() override {}
 
-  static void EXPECT_JOIN_EDGE(const std::vector<JoinEdge>& edges,
-                               const std::vector<std::shared_ptr<AbstractASTNode>>& vertices,
+  static void EXPECT_JOIN_EDGE(const JoinGraph &join_graph,
                                const std::shared_ptr<AbstractASTNode>& node_a,
                                const std::shared_ptr<AbstractASTNode>& node_b, ColumnID column_id_a,
                                ColumnID column_id_b, ScanType scan_type) {
-    for (const auto& edge : edges) {
-      if (vertices.size() <= edge.node_indices.first) continue;
-      if (vertices.size() <= edge.node_indices.second) continue;
+    for (const auto& edge : join_graph.edges()) {
+      if (join_graph.vertices().size() <= edge.node_indices.first) continue;
+      if (join_graph.vertices().size() <= edge.node_indices.second) continue;
 
-      const auto& edge_node_a = vertices[edge.node_indices.first];
-      const auto& edge_node_b = vertices[edge.node_indices.second];
+      const auto& edge_node_a = join_graph.vertices()[edge.node_indices.first];
+      const auto& edge_node_b = join_graph.vertices()[edge.node_indices.second];
 
       if (edge_node_a == node_a) {
         if (edge_node_b == node_b && edge.predicate.column_ids == std::make_pair(column_id_a, column_id_b)) {
@@ -56,27 +55,26 @@ class JoinReorderingRuleTest : public BaseTest {
 
 TEST_F(JoinReorderingRuleTest, SearchJoinGraphSimple) {
   /**
-   *      --Join--
-   *    /         \
-   *  table_a   table_b
+   *      --Join (table_a.a = table_b.b) --
+   *    /                                  \
+   *  table_a                               table_b
    */
   auto join_node =
-      std::make_shared<JoinNode>(JoinMode::Inner, std::make_pair(ColumnID{0}, ColumnID{2}), ScanType::OpEquals);
+      std::make_shared<JoinNode>(JoinMode::Inner, std::make_pair(ColumnID{0}, ColumnID{1}), ScanType::OpEquals);
   auto table_a_node = std::make_shared<StoredTableNode>("table_a");
   auto table_b_node = std::make_shared<StoredTableNode>("table_b");
 
   join_node->set_left_child(table_a_node);
   join_node->set_right_child(table_b_node);
 
-  std::vector<std::shared_ptr<AbstractASTNode>> vertices;
-  std::vector<JoinEdge> edges;
+  const auto join_graph = JoinReorderingRule::search_join_graph(join_node);
 
-  JoinReorderingRule::search_join_graph(join_node, vertices, edges);
+  join_graph.print();
 
-  EXPECT_JOIN_VERTICES(vertices, {table_a_node, table_b_node});
+  EXPECT_JOIN_VERTICES(join_graph.vertices(), {table_a_node, table_b_node});
 
-  EXPECT_EQ(edges.size(), 1);
-  EXPECT_JOIN_EDGE(edges, vertices, table_a_node, table_b_node, ColumnID{0}, ColumnID{2}, ScanType::OpEquals);
+  EXPECT_EQ(join_graph.edges().size(), 1);
+  EXPECT_JOIN_EDGE(join_graph, table_a_node, table_b_node, ColumnID{0}, ColumnID{1}, ScanType::OpEquals);
 }
 
 TEST_F(JoinReorderingRuleTest, SearchJoinGraphMedium) {
@@ -87,7 +85,7 @@ TEST_F(JoinReorderingRuleTest, SearchJoinGraphMedium) {
   /**
    *                   Projection
    *                     |
-   *     Join_a (table_a.a = table_c.b)
+   *     Join_a (table_a.a > table_c.b)
    *    /                              \
    *  table_a                   Join_b (table_b.a = table_c.c)
    *                           /                              \
@@ -97,7 +95,7 @@ TEST_F(JoinReorderingRuleTest, SearchJoinGraphMedium) {
    */
   auto projection_node = std::make_shared<ProjectionNode>(Expression::create_columns({ColumnID{0}}));
   auto join_a_node =
-      std::make_shared<JoinNode>(JoinMode::Inner, std::make_pair(ColumnID{0}, ColumnID{5}), ScanType::OpGreaterThan);
+      std::make_shared<JoinNode>(JoinMode::Inner, std::make_pair(ColumnID{0}, ColumnID{3}), ScanType::OpGreaterThan);
   auto join_b_node =
       std::make_shared<JoinNode>(JoinMode::Inner, std::make_pair(ColumnID{0}, ColumnID{2}), ScanType::OpEquals);
   auto table_a_node = std::make_shared<StoredTableNode>("table_a");
@@ -112,23 +110,22 @@ TEST_F(JoinReorderingRuleTest, SearchJoinGraphMedium) {
   join_a_node->set_right_child(join_b_node);
   projection_node->set_left_child(join_a_node);
 
-  std::vector<std::shared_ptr<AbstractASTNode>> vertices;
-  std::vector<JoinEdge> edges;
-
   // Searching from the root shouldn't yield anything except the root as it is not a join
-  JoinReorderingRule::search_join_graph(projection_node, vertices, edges);
-  EXPECT_JOIN_VERTICES(vertices, {projection_node});
-  EXPECT_EQ(edges.size(), 0);
+  const auto join_graph_a = JoinReorderingRule::search_join_graph(projection_node);
+  EXPECT_JOIN_VERTICES(join_graph_a.vertices(), {projection_node});
+  EXPECT_EQ(join_graph_a.edges().size(), 0);
+
+  join_graph_a.print();
 
   // Searching from join_a should yield a non-empty join graph
-  vertices.clear();
-  edges.clear();
-  JoinReorderingRule::search_join_graph(join_a_node, vertices, edges);
+  const auto join_graph_b = JoinReorderingRule::search_join_graph(join_a_node);
 
-  EXPECT_JOIN_VERTICES(vertices, {table_a_node, table_b_node, predicate_node});
+  join_graph_b.print();
 
-  EXPECT_EQ(edges.size(), 2);
-  EXPECT_JOIN_EDGE(edges, vertices, table_a_node, table_c_node, ColumnID{0}, ColumnID{1}, ScanType::OpGreaterThan);
-  EXPECT_JOIN_EDGE(edges, vertices, table_b_node, table_c_node, ColumnID{0}, ColumnID{2}, ScanType::OpEquals);
+  EXPECT_JOIN_VERTICES(join_graph_b.vertices(), {table_a_node, table_b_node, predicate_node});
+
+  EXPECT_EQ(join_graph_b.edges().size(), 2);
+  EXPECT_JOIN_EDGE(join_graph_b, table_a_node, predicate_node, ColumnID{0}, ColumnID{1}, ScanType::OpGreaterThan);
+  EXPECT_JOIN_EDGE(join_graph_b, table_b_node, predicate_node, ColumnID{0}, ColumnID{2}, ScanType::OpEquals);
 }
 }

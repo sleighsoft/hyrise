@@ -6,6 +6,7 @@
 
 #include "common.hpp"
 #include "join_ordering_types.hpp"
+#include "join_graph.hpp"
 #include "types.hpp"
 
 namespace opossum {

@@ -7,6 +7,7 @@
 
 #include "abstract_rule.hpp"
 #include "optimizer/strategy/join_ordering/join_ordering_types.hpp"
+#include "optimizer/strategy/join_ordering/join_graph.hpp"
 
 namespace opossum {
 
@@ -24,7 +25,9 @@ class JoinReorderingRule : public AbstractRule {
  public:
   bool apply_to(const std::shared_ptr<AbstractASTNode>& node) override;
 
-  static bool search_join_graph(const std::shared_ptr<AbstractASTNode>& node,
+  static JoinGraph search_join_graph(const std::shared_ptr<AbstractASTNode>& node);
+
+  static void search_join_graph(const std::shared_ptr<AbstractASTNode>& node,
                                 std::vector<std::shared_ptr<AbstractASTNode>>& o_vertices,
                                 std::vector<JoinEdge>& o_edges, ColumnID column_id_offset = ColumnID{0});
 

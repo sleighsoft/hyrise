@@ -45,13 +45,24 @@ bool JoinReorderingRule::apply_to(const std::shared_ptr<AbstractASTNode>& node) 
   return false;  // TODO(moritz)
 }
 
-bool JoinReorderingRule::search_join_graph(const std::shared_ptr<AbstractASTNode>& node,
-                                           std::vector<std::shared_ptr<AbstractASTNode>>& o_vertices,
-                                           std::vector<JoinEdge>& o_edges, ColumnID column_id_offset) {
-  if (!node) return false;
+JoinGraph JoinReorderingRule::search_join_graph(const std::shared_ptr<AbstractASTNode>& node) {
+  JoinGraph::Vertices vertices;
+  JoinGraph::Edges edges;
+
+  search_join_graph(node, vertices, edges);
+
+  return JoinGraph(std::move(vertices), std::move(edges));
+}
+
+
+void JoinReorderingRule::search_join_graph(const std::shared_ptr<AbstractASTNode>& node,
+                              std::vector<std::shared_ptr<AbstractASTNode>>& o_vertices,
+                              std::vector<JoinEdge>& o_edges, ColumnID column_id_offset) {
+  if (!node) return;
   if (node->type() != ASTNodeType::Join) {
+    // Any node that is not a join is a vertex and its children won't be processed
     o_vertices.emplace_back(node);
-    return true;
+    return;
   }
 
   const auto join_node = std::static_pointer_cast<JoinNode>(node);
@@ -59,47 +70,51 @@ bool JoinReorderingRule::search_join_graph(const std::shared_ptr<AbstractASTNode
   Assert(join_node->join_column_ids(), "Need join columns for now");
 
   /**
-   * Not using `_search_join_nodes(node->left_child()) ||  _search_join_nodes(node->right_child())` because of
-   * short-circuited evaluation. If the left side of the expression is true, the right side would not be called.
+   * Process children on the left side
    */
-  const auto reordered_descendants_left = search_join_graph(node->left_child(), o_vertices, o_edges, column_id_offset);
+  const auto left_vertex_offset = o_vertices.size();
+  search_join_graph(node->left_child(), o_vertices, o_edges, column_id_offset);
 
+  /**
+   * Process children on the right side
+   */
   const auto right_column_offset =
       ColumnID{static_cast<ColumnID::base_type>(column_id_offset + node->left_child()->output_col_count())};
-  const auto reordered_descendants_right =
-      search_join_graph(node->right_child(), o_vertices, o_edges, right_column_offset);
+  const auto right_vertex_offset = o_vertices.size();
+  search_join_graph(node->right_child(), o_vertices, o_edges, right_column_offset);
+
+  /**
+   * Build the JoinEdge corresponding to this node
+   */
+  JoinEdge edge;
+  edge.predicate.scan_type = *join_node->scan_type();
+  edge.predicate.mode = join_node->join_mode();
 
   auto left_column_id = join_node->join_column_ids()->first;
   auto right_column_id = join_node->join_column_ids()->second;
 
-  JoinEdge edge;
-  edge.predicate.scan_type = *join_node->scan_type();
-  edge.predicate.mode = join_node->join_mode();
-  edge.predicate.column_ids = std::make_pair(left_column_id + column_id_offset, right_column_id + column_id_offset);
-
   // Find vertex indices
-  left_column_id += column_id_offset;
-  right_column_id += column_id_offset;
-  for (JoinVertexId vertex_id = 0; vertex_id < o_vertices.size(); ++vertex_id) {
-    auto& vertex_node = o_vertices[vertex_id];
-
-    if (edge.node_indices.first == INVALID_JOIN_VERTEX_ID && left_column_id < vertex_node->output_col_count()) {
-      edge.node_indices.first = vertex_id;
+  const auto find_column = [&o_vertices] (auto column_id, const auto vertex_range_begin, const auto vertex_range_end) {
+    for (JoinVertexId vertex_idx = vertex_range_begin; vertex_idx < vertex_range_end; ++vertex_idx) {
+      const auto &vertex = o_vertices[vertex_idx];
+      if (column_id < vertex->output_col_count()) {
+        return std::make_pair(vertex_idx, column_id);
+      }
+      column_id -= vertex->output_col_count();
     }
-    left_column_id -= vertex_node->output_col_count();  // This might underflow, but only after we found the vertex
+    Fail("Couldn't find column_id in vertex range.");
+    return std::make_pair(INVALID_JOIN_VERTEX_ID, INVALID_COLUMN_ID);
+  };
 
-    if (edge.node_indices.second == INVALID_JOIN_VERTEX_ID && right_column_id < vertex_node->output_col_count()) {
-      edge.node_indices.second = vertex_id;
-    }
-    right_column_id -= vertex_node->output_col_count();  // This might underflow, but only after we found the vertex
-  }
+  const auto find_left_result = find_column(left_column_id, left_vertex_offset, right_vertex_offset);
+  const auto find_right_result = find_column(right_column_id, right_vertex_offset, o_vertices.size());
 
-  Assert(edge.node_indices.first != INVALID_JOIN_VERTEX_ID, "Couldn't find vertex corresponding to column id");
-  Assert(edge.node_indices.second != INVALID_JOIN_VERTEX_ID, "Couldn't find vertex corresponding to column id");
+  edge.node_indices.first = find_left_result.first;
+  edge.predicate.column_ids.first = find_left_result.second;
+  edge.node_indices.second = find_right_result.first;
+  edge.predicate.column_ids.second = find_right_result.second;
 
   o_edges.emplace_back(edge);
-
-  return reordered_descendants_left || reordered_descendants_right;
 }
 
 ResolvedColumn JoinReorderingRule::_resolve_column_id(const std::vector<std::shared_ptr<AbstractASTNode>>& nodes,
