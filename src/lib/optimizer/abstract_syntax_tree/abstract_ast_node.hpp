@@ -71,10 +71,24 @@ class AbstractASTNode : public std::enable_shared_from_this<AbstractASTNode> {
 
   ASTNodeType type() const;
 
+  // @{
+  /**
+   * These functions provide access to statistics for this particular node.
+   *
+   * AbstractASTNode::derive_statistics_from() calculates new statistics for this node as they would appear if
+   * left_child and right_child WERE its children. This works for the actual children of this node during the lazy
+   * initialization in get_statistics() as well as e.g. in an optimizer rule
+   * that tries to reorder nodes based on some statistics. In that case it will call this function for all the nodes
+   * that shall be reordered with the same reference node.
+   *
+   * Inheriting nodes are free to override AbstractASTNode::derive_statistics_from().
+   */
   void set_statistics(const std::shared_ptr<TableStatistics>& statistics);
   const std::shared_ptr<TableStatistics> get_statistics();
-  virtual const std::shared_ptr<TableStatistics> get_statistics_from(
-      const std::shared_ptr<AbstractASTNode>& other_node) const;
+  virtual std::shared_ptr<TableStatistics> derive_statistics_from(
+      const std::shared_ptr<AbstractASTNode>& left_child,
+      const std::shared_ptr<AbstractASTNode>& right_child = nullptr) const;
+  // @}
 
   virtual const std::vector<std::string>& output_column_names() const;
 
@@ -156,7 +170,6 @@ class AbstractASTNode : public std::enable_shared_from_this<AbstractASTNode> {
 
  protected:
   virtual void _on_child_changed() {}
-  virtual const std::shared_ptr<TableStatistics> _gather_statistics() const;
 
   // Used to easily differentiate between node types without pointer casts.
   ASTNodeType _type;

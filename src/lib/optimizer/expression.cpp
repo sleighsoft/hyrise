@@ -350,8 +350,8 @@ bool Expression::operator==(const Expression& rhs) const {
     }
   }
 
-  return _type == rhs._type && _value == rhs._value && _table_name == rhs._table_name && _column_id == rhs._column_id &&
-         _alias == rhs._alias;
+  return _type == rhs._type && _value == rhs._value && _aggregate_function == rhs._aggregate_function &&
+         _table_name == rhs._table_name && _column_id == rhs._column_id && _alias == rhs._alias;
 }
 
 void Expression::set_alias(const std::string& alias) { _alias = alias; }

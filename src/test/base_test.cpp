@@ -7,6 +7,7 @@
 #include <vector>
 
 #include "concurrency/transaction_manager.hpp"
+#include "optimizer/abstract_syntax_tree/join_node.hpp"
 #include "storage/storage_manager.hpp"
 #include "storage/table.hpp"
 #include "type_cast.hpp"
@@ -31,6 +32,17 @@ void BaseTest::ASSERT_TABLE_EQ(std::shared_ptr<const Table> tleft, std::shared_p
                                bool order_sensitive) {
   ASSERT_TABLE_EQ(*tleft, *tright, order_sensitive);
 }
+
+void BaseTest::ASSERT_INNER_JOIN_NODE(const std::shared_ptr<AbstractASTNode>& node, ScanType scanType,
+                                      ColumnID left_column_id, ColumnID right_column_id) {
+  ASSERT_EQ(node->type(), ASTNodeType::Join);  // Can't cast otherwise
+  auto join_node = std::dynamic_pointer_cast<JoinNode>(node);
+  ASSERT_EQ(join_node->join_mode(), JoinMode::Inner);  // Can't access join_column_ids() otherwise
+  EXPECT_EQ(join_node->scan_type(), ScanType::OpEquals);
+  EXPECT_EQ(join_node->join_column_ids(), std::make_pair(left_column_id, right_column_id));
+}
+
+void BaseTest::ASSERT_CROSS_JOIN_NODE(const std::shared_ptr<AbstractASTNode>& node) {}
 
 BaseTest::Matrix BaseTest::_table_to_matrix(const Table& t) {
   // initialize matrix with table sizes

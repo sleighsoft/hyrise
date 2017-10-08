@@ -14,6 +14,7 @@
 
 namespace opossum {
 
+class AbstractASTNode;
 class Table;
 
 using Matrix = std::vector<std::vector<AllTypeVariant>>;
@@ -43,6 +44,11 @@ class BaseTest : public ::testing::Test {
                               bool order_sensitive = false);
   static void ASSERT_TABLE_EQ(std::shared_ptr<const Table> tleft, std::shared_ptr<const Table> tright,
                               bool order_sensitive = false);
+
+  static void ASSERT_INNER_JOIN_NODE(const std::shared_ptr<AbstractASTNode>& node, ScanType scanType,
+                                     ColumnID left_column_id, ColumnID right_column_id);
+
+  static void ASSERT_CROSS_JOIN_NODE(const std::shared_ptr<AbstractASTNode>& node);
 
   // creates a dictionary column with the given type and values
   template <class T>

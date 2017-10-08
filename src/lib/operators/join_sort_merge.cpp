@@ -41,15 +41,6 @@ JoinSortMerge::JoinSortMerge(const std::shared_ptr<const AbstractOperator> left,
                   op == ScanType::OpNotEquals,
               "Unsupported scan type");
   DebugAssert(op == ScanType::OpEquals || mode == JoinMode::Inner, "Outer joins are only implemented for equi joins.");
-
-  // Check column types
-  const auto& left_column_type = _input_table_left()->column_type(column_ids.first);
-  DebugAssert(left_column_type == _input_table_right()->column_type(column_ids.second),
-              "Left and right column types do not match. The sort merge join requires matching column types");
-
-  // Create implementation to compute the join result
-  _impl = make_unique_by_column_type<AbstractJoinOperatorImpl, JoinSortMergeImpl>(
-      left_column_type, *this, column_ids.first, column_ids.second, op, mode);
 }
 
 std::shared_ptr<AbstractOperator> JoinSortMerge::recreate(const std::vector<AllParameterVariant>& args) const {
@@ -57,7 +48,18 @@ std::shared_ptr<AbstractOperator> JoinSortMerge::recreate(const std::vector<AllP
   return {};
 }
 
-std::shared_ptr<const Table> JoinSortMerge::_on_execute() { return _impl->_on_execute(); }
+std::shared_ptr<const Table> JoinSortMerge::_on_execute() {
+  // Check column types
+  const auto& left_column_type = _input_table_left()->column_type(_column_ids.first);
+  DebugAssert(left_column_type == _input_table_right()->column_type(_column_ids.second),
+              "Left and right column types do not match. The sort merge join requires matching column types");
+
+  // Create implementation to compute the join result
+  _impl = make_unique_by_column_type<AbstractJoinOperatorImpl, JoinSortMergeImpl>(
+      left_column_type, *this, _column_ids.first, _column_ids.second, _scan_type, _mode);
+
+  return _impl->_on_execute();
+}
 
 void JoinSortMerge::_on_cleanup() { _impl.reset(); }
 

@@ -2,6 +2,8 @@
 
 #include <limits>
 
+#include "types.hpp"
+
 namespace opossum {
 
 using JoinVertexId = size_t;  // TODO(moritz) Strong typedef

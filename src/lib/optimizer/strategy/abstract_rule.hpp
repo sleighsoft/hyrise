@@ -21,9 +21,8 @@ class AbstractRule {
 
  protected:
   /**
-   * IMPORTANT: Takes a copy of the node because applying this rule to children of this node might remove this node from
-   * the tree,
-   * which might result in this node being deleted if we don't take a copy of the shared_ptr here.
+   * IMPORTANT: Takes a copy of the node ptr because applying this rule to children of this node might remove this node
+   * from the tree, which might result in this node being deleted if we don't take a copy of the shared_ptr here.
    */
   bool _apply_to_children(std::shared_ptr<AbstractASTNode> node);
 };

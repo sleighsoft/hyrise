@@ -19,7 +19,8 @@ Optimizer::Optimizer() {
 }
 
 std::shared_ptr<AbstractASTNode> Optimizer::optimize(const std::shared_ptr<AbstractASTNode>& input) const {
-  // Add explicit root node
+  // Add explicit root node, so the rules can freely change the tree below it without having to maintain a root node
+  // to return to the Optimizer
   const auto root_node = std::make_shared<ASTRootNode>();
   root_node->set_left_child(input);
 
