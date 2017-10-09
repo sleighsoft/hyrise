@@ -58,16 +58,25 @@ JoinGraph JoinReorderingRule::search_join_graph(const std::shared_ptr<AbstractAS
 void JoinReorderingRule::search_join_graph(const std::shared_ptr<AbstractASTNode>& node,
                               std::vector<std::shared_ptr<AbstractASTNode>>& o_vertices,
                               std::vector<JoinEdge>& o_edges, ColumnID column_id_offset) {
+  // To make it possible to call search_join_graph() on both children without having to check whether they are nullptr.
   if (!node) return;
+
+  // Everything that is not a Join becomes a vertex
   if (node->type() != ASTNodeType::Join) {
-    // Any node that is not a join is a vertex and its children won't be processed
     o_vertices.emplace_back(node);
     return;
   }
 
   const auto join_node = std::static_pointer_cast<JoinNode>(node);
-  Assert(join_node->scan_type(), "Need scan type for now");
-  Assert(join_node->join_column_ids(), "Need join columns for now");
+
+  // Every non-inner join becomes a vertex for now
+  if (join_node->join_mode() != JoinMode::Inner) {
+    o_vertices.emplace_back(node);
+    return;
+  }
+
+  Assert(join_node->scan_type(), "Need scan type for now, since only inner joins are supported");
+  Assert(join_node->join_column_ids(), "Need join columns for now, since only inner joins are supported");
 
   /**
    * Process children on the left side

@@ -69,8 +69,6 @@ TEST_F(JoinReorderingRuleTest, SearchJoinGraphSimple) {
 
   const auto join_graph = JoinReorderingRule::search_join_graph(join_node);
 
-  join_graph.print();
-
   EXPECT_JOIN_VERTICES(join_graph.vertices(), {table_a_node, table_b_node});
 
   EXPECT_EQ(join_graph.edges().size(), 1);
@@ -115,17 +113,66 @@ TEST_F(JoinReorderingRuleTest, SearchJoinGraphMedium) {
   EXPECT_JOIN_VERTICES(join_graph_a.vertices(), {projection_node});
   EXPECT_EQ(join_graph_a.edges().size(), 0);
 
-  join_graph_a.print();
-
   // Searching from join_a should yield a non-empty join graph
   const auto join_graph_b = JoinReorderingRule::search_join_graph(join_a_node);
-
-  join_graph_b.print();
 
   EXPECT_JOIN_VERTICES(join_graph_b.vertices(), {table_a_node, table_b_node, predicate_node});
 
   EXPECT_EQ(join_graph_b.edges().size(), 2);
   EXPECT_JOIN_EDGE(join_graph_b, table_a_node, predicate_node, ColumnID{0}, ColumnID{1}, ScanType::OpGreaterThan);
   EXPECT_JOIN_EDGE(join_graph_b, table_b_node, predicate_node, ColumnID{0}, ColumnID{2}, ScanType::OpEquals);
+}
+
+TEST_F(JoinReorderingRuleTest, SearchJoinGraphLarge) {
+  /**
+   * TODO(moritz) Split into multiple tests for search_join_graph invocations for different nodes
+   */
+
+  /**
+   * Involves a cross join and joins that take join results as input
+   *
+   *     Join_a (table_a_0.a > table_c_1.b)
+   *    /                              \
+   *  table_a_0                 Join_b (table_b_0.b = table_c_1.c)
+   *                           /                              \
+   *       Join_c (table_b_0.a = table_c_0.c)                 Join_d (table_b_1.a < table_c_1.a)
+   *       /                           \                      /                             \
+   * table_b_0                         table_c_0       table_b_1                           CrossJoin
+   *                                                                                        /       \
+   *                                                                                  table_a_1      table_c_1
+   */
+  auto join_a_node =
+      std::make_shared<JoinNode>(JoinMode::Inner, std::make_pair(ColumnID{0}, ColumnID{9}), ScanType::OpGreaterThan);
+  auto join_b_node =
+      std::make_shared<JoinNode>(JoinMode::Inner, std::make_pair(ColumnID{1}, ColumnID{5}), ScanType::OpEquals);
+  auto join_c_node =
+    std::make_shared<JoinNode>(JoinMode::Inner, std::make_pair(ColumnID{0}, ColumnID{2}), ScanType::OpEquals);
+  auto join_d_node =
+    std::make_shared<JoinNode>(JoinMode::Inner, std::make_pair(ColumnID{0}, ColumnID{1}), ScanType::OpEquals);
+  auto cross_join_node = std::make_shared<JoinNode>(JoinMode::Cross);
+  auto table_a_0_node = std::make_shared<StoredTableNode>("table_a");
+  auto table_a_1_node = std::make_shared<StoredTableNode>("table_a");
+  auto table_b_0_node = std::make_shared<StoredTableNode>("table_b");
+  auto table_b_1_node = std::make_shared<StoredTableNode>("table_b");
+  auto table_c_0_node = std::make_shared<StoredTableNode>("table_c");
+  auto table_c_1_node = std::make_shared<StoredTableNode>("table_c");
+
+  cross_join_node->set_children(table_a_1_node, table_c_1_node);
+  join_d_node->set_children(table_b_1_node, cross_join_node);
+  join_c_node->set_children(table_b_0_node, table_c_0_node);
+  join_b_node->set_children(join_c_node, join_d_node);
+  join_a_node->set_children(table_a_0_node, join_b_node);
+
+  // Searching from join_a should yield a non-empty join graph
+  const auto join_graph = JoinReorderingRule::search_join_graph(join_a_node);
+
+  EXPECT_JOIN_VERTICES(join_graph.vertices(),
+                       {table_a_0_node, table_b_0_node, table_c_0_node, table_b_1_node, cross_join_node});
+
+  EXPECT_EQ(join_graph.edges().size(), 4);
+  EXPECT_JOIN_EDGE(join_graph, table_a_0_node, cross_join_node, ColumnID{0}, ColumnID{2}, ScanType::OpGreaterThan);
+  EXPECT_JOIN_EDGE(join_graph, table_b_0_node, cross_join_node, ColumnID{1}, ColumnID{3}, ScanType::OpEquals);
+  EXPECT_JOIN_EDGE(join_graph, table_b_0_node, table_c_0_node, ColumnID{0}, ColumnID{2}, ScanType::OpEquals);
+  EXPECT_JOIN_EDGE(join_graph, table_b_1_node, cross_join_node, ColumnID{0}, ColumnID{1}, ScanType::OpLessThan);
 }
 }

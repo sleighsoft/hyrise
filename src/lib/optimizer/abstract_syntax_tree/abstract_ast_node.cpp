@@ -60,6 +60,12 @@ void AbstractASTNode::set_right_child(const std::shared_ptr<AbstractASTNode>& ri
   _on_child_changed();
 }
 
+void AbstractASTNode::set_children(const std::shared_ptr<AbstractASTNode>& left,
+                                   const std::shared_ptr<AbstractASTNode>& right) {
+  set_left_child(left);
+  set_right_child(right);
+}
+
 ASTNodeType AbstractASTNode::type() const { return _type; }
 
 void AbstractASTNode::set_statistics(const std::shared_ptr<TableStatistics>& statistics) { _statistics = statistics; }

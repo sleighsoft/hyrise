@@ -58,6 +58,8 @@ class AbstractASTNode : public std::enable_shared_from_this<AbstractASTNode> {
    *
    * The _parent is implicitly set in set_left_child/set_right_child.
    * For un-setting _parent use clear_parent().
+   *
+   * set_children() is a shorthand for `set_left_child(); set_right_child();`
    */
   std::shared_ptr<AbstractASTNode> parent() const;
   void clear_parent();
@@ -67,6 +69,8 @@ class AbstractASTNode : public std::enable_shared_from_this<AbstractASTNode> {
 
   const std::shared_ptr<AbstractASTNode>& right_child() const;
   void set_right_child(const std::shared_ptr<AbstractASTNode>& right);
+
+  void set_children(const std::shared_ptr<AbstractASTNode>& left, const std::shared_ptr<AbstractASTNode>& right);
   // @}
 
   ASTNodeType type() const;
