@@ -2,9 +2,22 @@
 
 #include <utility>
 
+#include "optimizer/abstract_syntax_tree/abstract_ast_node.hpp"
+#include "optimizer/abstract_syntax_tree/join_node.hpp"
+#include "types.hpp"
+#include "utils/assert.hpp"
 #include "constant_mappings.hpp"
 
 namespace opossum {
+
+std::shared_ptr<JoinGraph> JoinGraph::build_join_graph(const std::shared_ptr<AbstractASTNode>& root) {
+  JoinGraph::Vertices vertices;
+  JoinGraph::Edges edges;
+
+  _traverse_ast_for_join_graph(root, vertices, edges);
+
+  return std::make_shared<JoinGraph>(std::move(vertices), std::move(edges));
+}
 
 JoinGraph::JoinGraph(Vertices && vertices, Edges && edges):
   _vertices(std::move(vertices)),
@@ -35,6 +48,78 @@ void JoinGraph::print(std::ostream& out) const {
   }
 
   out << "===================" << std::endl;
+}
+
+void JoinGraph::_traverse_ast_for_join_graph(const std::shared_ptr<AbstractASTNode>& node,
+                                         std::vector<std::shared_ptr<AbstractASTNode>>& o_vertices,
+                                         std::vector<JoinEdge>& o_edges, ColumnID column_id_offset) {
+  // To make it possible to call search_join_graph() on both children without having to check whether they are nullptr.
+  if (!node) return;
+
+  // Everything that is not a Join becomes a vertex
+  if (node->type() != ASTNodeType::Join) {
+    o_vertices.emplace_back(node);
+    return;
+  }
+
+  const auto join_node = std::static_pointer_cast<JoinNode>(node);
+
+  // Every non-inner join becomes a vertex for now
+  if (join_node->join_mode() != JoinMode::Inner) {
+    o_vertices.emplace_back(node);
+    return;
+  }
+
+  Assert(join_node->scan_type(), "Need scan type for now, since only inner joins are supported");
+  Assert(join_node->join_column_ids(), "Need join columns for now, since only inner joins are supported");
+
+  /**
+   * Process children on the left side
+   */
+  const auto left_vertex_offset = o_vertices.size();
+  _traverse_ast_for_join_graph(node->left_child(), o_vertices, o_edges, column_id_offset);
+
+  /**
+   * Process children on the right side
+   */
+  const auto right_column_offset =
+    ColumnID{static_cast<ColumnID::base_type>(column_id_offset + node->left_child()->output_col_count())};
+  const auto right_vertex_offset = o_vertices.size();
+  _traverse_ast_for_join_graph(node->right_child(), o_vertices, o_edges, right_column_offset);
+
+  /**
+   * Build the JoinEdge corresponding to this node
+   */
+  JoinEdge edge;
+  edge.predicate.scan_type = *join_node->scan_type();
+  edge.predicate.mode = join_node->join_mode();
+
+  auto left_column_id = join_node->join_column_ids()->first;
+  auto right_column_id = join_node->join_column_ids()->second;
+
+  // Find vertex indices
+  const auto find_column = [&o_vertices] (auto column_id, const auto vertex_range_begin, const auto vertex_range_end) {
+    for (JoinVertexId vertex_idx = vertex_range_begin; vertex_idx < vertex_range_end; ++vertex_idx) {
+      const auto &vertex = o_vertices[vertex_idx];
+      if (column_id < vertex->output_col_count()) {
+        return std::make_pair(vertex_idx, column_id);
+      }
+      column_id -= vertex->output_col_count();
+    }
+    Fail("Couldn't find column_id in vertex range.");
+    return std::make_pair(INVALID_JOIN_VERTEX_ID, INVALID_COLUMN_ID);
+  };
+
+  const auto find_left_result = find_column(left_column_id, left_vertex_offset, right_vertex_offset);
+  const auto find_right_result = find_column(right_column_id, right_vertex_offset, o_vertices.size());
+
+  edge.node_indices.first = find_left_result.first;
+  edge.predicate.column_ids.first = find_left_result.second;
+  edge.node_indices.second = find_right_result.first;
+  edge.predicate.column_ids.second = find_right_result.second;
+
+  o_edges.emplace_back(edge);
+
 }
 
 }

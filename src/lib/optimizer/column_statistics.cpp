@@ -342,9 +342,9 @@ TwoColumnSelectivityResult ColumnStatistics<ColumnType>::estimate_selectivity_fo
    * this is col_right. Statistics component assumes that for two value sets for the same range the smaller set is
    * part of the bigger set. Therefore, it assumes that the 5 distinct values within the overlapping range of the right
    * column also exist in the left column. The equal value ratio is then calculated by multiplying
-   * right_overlapping_ratio (= 1 / 2) with the probability to hit any distinct value of the left column (= 1 / 20):
-   * equal_values_ratio = (1 / 2) * (1 / 20) = (1 / 40)
-   * This is also the selectivity for the scan type equals: (1 / 40) = 2.5 %
+   * right_overlapping_ratio (= 1 / 3) with the probability to hit any distinct value of the left column (= 1 / 20):
+   * equal_values_ratio = (1 / 3) * (1 / 20) = (1 / 60)
+   * This is also the selectivity for the scan type equals: (1 / 60) = 1.6667 %
    *
    * For scan type less the ratios left_below_overlapping_ratio and right_above_overlapping_ratio are also considered as
    * table entries where the col_left value is below the common range or the col_right value is above it will always be

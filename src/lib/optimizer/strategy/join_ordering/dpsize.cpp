@@ -11,34 +11,39 @@
 
 namespace opossum {
 
-DPsize::DPsize(const std::vector<std::shared_ptr<AbstractASTNode>>& tables, const std::vector<JoinEdge>& edges)
-    : m_tables(tables), m_edges(edges) {}
+DPsize::DPsize(const std::shared_ptr<JoinGraph> &join_graph)
+    : _join_graph(join_graph) {}
 
 std::shared_ptr<AbstractASTNode> DPsize::run() {
-  std::vector<JoinTableNode> table_nodes(m_tables.size());
-  for (size_t table_idx = 0; table_idx < m_tables.size(); ++table_idx) {
-    table_nodes[table_idx] = JoinTableNode{m_tables[table_idx], table_idx};
+  const auto & vertices = _join_graph->vertices();
+
+  std::vector<JoinTableNode> table_nodes(vertices.size());
+  for (size_t table_idx = 0; table_idx < vertices.size(); ++table_idx) {
+    table_nodes[table_idx] = JoinTableNode{vertices[table_idx], table_idx};
   }
 
   std::unordered_map<TableNodeSet, std::shared_ptr<JoinPlanNode>> best_plans;
 
-  for (size_t table_idx = 0; table_idx < m_tables.size(); ++table_idx) {
+  /**
+   * Create the initial best planes for single nodes - which is just the vertex itself
+   */
+  for (size_t table_idx = 0; table_idx < vertices.size(); ++table_idx) {
     TableNodeSet node_set;
     node_set.set(table_idx);
 
     auto plan = std::make_shared<JoinPlanNode>();
     plan->table_idx = table_idx;
-    plan->statistics = m_tables[table_idx]->get_statistics();
+    plan->statistics = vertices[table_idx]->get_statistics();
 
     best_plans[node_set] = plan;
   }
 
-  for (size_t plan_size = 2; plan_size < m_tables.size(); ++plan_size) {
+  for (size_t plan_size = 2; plan_size < vertices.size(); ++plan_size) {
     for (size_t left_plan_size = 1; left_plan_size < plan_size; ++left_plan_size) {
       const auto right_plan_size = plan_size - left_plan_size;
 
-      const auto left_sets = _generate_subsets_of_size(left_plan_size, m_tables.size());
-      const auto right_sets = _generate_subsets_of_size(right_plan_size, m_tables.size());
+      const auto left_sets = _generate_subsets_of_size(left_plan_size, vertices.size());
+      const auto right_sets = _generate_subsets_of_size(right_plan_size, vertices.size());
 
       for (const auto& left_set : left_sets) {
         for (const auto& right_set : right_sets) {
@@ -69,7 +74,7 @@ std::shared_ptr<AbstractASTNode> DPsize::run() {
   }
 
   TableNodeSet complete_set;
-  for (size_t bit_idx = 0; bit_idx < m_tables.size(); ++bit_idx) {
+  for (size_t bit_idx = 0; bit_idx < vertices.size(); ++bit_idx) {
     complete_set.set(bit_idx);
   }
 
@@ -111,6 +116,8 @@ std::vector<JoinEdge> DPsize::_find_edges_between_sets(const TableNodeSet& left,
 std::shared_ptr<JoinPlanNode> DPsize::_join_plans(const std::shared_ptr<JoinPlanNode>& best_plan_left,
                                                   const std::shared_ptr<JoinPlanNode>& best_plan_right,
                                                   const std::vector<JoinEdge>& join_edges) const {
+  const auto & edges = _join_graph->edges();
+
   auto min_row_count = std::numeric_limits<float>::max();
   auto min_row_count_edge_idx = size_t{0};
 
@@ -119,7 +126,7 @@ std::shared_ptr<JoinPlanNode> DPsize::_join_plans(const std::shared_ptr<JoinPlan
   best_plan_node->right_child = best_plan_right;
 
   for (size_t join_edge_idx = 0; join_edge_idx < join_edges.size(); ++join_edge_idx) {
-    auto& edge = m_edges[join_edge_idx];
+    auto& edge = edges[join_edge_idx];
 
     auto statistics = best_plan_left->statistics->generate_predicated_join_statistics(
         best_plan_right->statistics, edge.predicate.mode, edge.predicate.column_ids, edge.predicate.scan_type);
@@ -131,11 +138,11 @@ std::shared_ptr<JoinPlanNode> DPsize::_join_plans(const std::shared_ptr<JoinPlan
     }
   }
 
-  best_plan_node->join_predicate = m_edges[min_row_count_edge_idx].predicate;
+  best_plan_node->join_predicate = edges[min_row_count_edge_idx].predicate;
 
-  for (size_t edge_idx = 0; edge_idx < m_edges.size(); ++edge_idx) {
+  for (size_t edge_idx = 0; edge_idx < edges.size(); ++edge_idx) {
     if (edge_idx == min_row_count_edge_idx) continue;
-    best_plan_node->pending_predicates.emplace_back(m_edges[edge_idx].predicate);
+    best_plan_node->pending_predicates.emplace_back(edges[edge_idx].predicate);
   }
 
   return best_plan_node;
@@ -143,7 +150,7 @@ std::shared_ptr<JoinPlanNode> DPsize::_join_plans(const std::shared_ptr<JoinPlan
 
 std::shared_ptr<AbstractASTNode> DPsize::_build_join_tree(const std::shared_ptr<JoinPlanNode>& plan_node) const {
   if (plan_node->table_idx) {
-    return m_tables[*plan_node->table_idx];
+    return _join_graph->vertices()[*plan_node->table_idx];
   }
 
   auto join_node = std::make_shared<JoinNode>(plan_node->join_predicate.mode, plan_node->join_predicate.column_ids,

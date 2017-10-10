@@ -45,6 +45,8 @@ set(
     optimizer/abstract_syntax_tree/abstract_syntax_tree_test.cpp
     optimizer/abstract_syntax_tree/aggregate_node_test.cpp
     optimizer/abstract_syntax_tree/join_node_test.cpp
+    optimizer/abstract_syntax_tree/mock_table_node.cpp
+    optimizer/abstract_syntax_tree/mock_table_node.hpp
     optimizer/abstract_syntax_tree/stored_table_node_test.cpp
     optimizer/abstract_syntax_tree/projection_node_test.cpp
     optimizer/ast_to_operator_translator_test.cpp
@@ -52,8 +54,10 @@ set(
     optimizer/strategy/join_detection_rule_test.cpp
     optimizer/expression_test.cpp
     optimizer/table_statistics_join_test.cpp
+    optimizer/strategy/join_ordering/dpsize_test.cpp
+    optimizer/strategy/join_ordering/join_graph_test.cpp
     optimizer/strategy/join_detection_rule_test.cpp
-    optimizer/strategy/join_reordering_rule_test.cpp
+    optimizer/strategy/join_reordering_base_test.hpp
     optimizer/strategy/predicate_reordering_test.cpp
     optimizer/strategy/strategy_base_test.cpp
     optimizer/table_statistics_join_test.cpp

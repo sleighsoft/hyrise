@@ -30,6 +30,8 @@ class JoinGraph final {
   using Vertices = std::vector<std::shared_ptr<AbstractASTNode>>;
   using Edges = std::vector<JoinEdge>;
 
+  static std::shared_ptr<JoinGraph> build_join_graph(const std::shared_ptr<AbstractASTNode>& root);
+
   JoinGraph() = default;
   JoinGraph(Vertices && vertices, Edges && edges);
 
@@ -39,6 +41,10 @@ class JoinGraph final {
   void print(std::ostream& out = std::cout) const;
 
  private:
+  static void _traverse_ast_for_join_graph(const std::shared_ptr<AbstractASTNode>& node,
+                                std::vector<std::shared_ptr<AbstractASTNode>>& o_vertices,
+                                std::vector<JoinEdge>& o_edges, ColumnID column_id_offset = ColumnID{0});
+
   Vertices _vertices;
   Edges _edges;
 };

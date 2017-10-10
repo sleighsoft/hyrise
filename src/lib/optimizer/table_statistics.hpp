@@ -50,6 +50,12 @@ class TableStatistics : public std::enable_shared_from_this<TableStatistics> {
    * This should only be done by the storage manager when adding a table to storage manager.
    */
   explicit TableStatistics(const std::shared_ptr<Table> table);
+
+  /**
+   * Intended for mocking statistics
+   */
+  TableStatistics(float row_count, size_t column_count);
+
   /**
    * Table statistics should not be copied by other actors.
    * Copy constructor not private as copy is used by make_shared.

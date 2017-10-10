@@ -34,7 +34,7 @@ struct JoinPlanNode {
 
 class DPsize final {
  public:
-  DPsize(const std::vector<std::shared_ptr<AbstractASTNode>>& tables, const std::vector<JoinEdge>& edges);
+  explicit DPsize(const std::shared_ptr<JoinGraph> &join_graph);
 
   std::shared_ptr<AbstractASTNode> run();
 
@@ -47,7 +47,6 @@ class DPsize final {
   std::shared_ptr<AbstractASTNode> _build_join_tree(const std::shared_ptr<JoinPlanNode>& plan_node) const;
 
  private:
-  std::vector<std::shared_ptr<AbstractASTNode>> m_tables;
-  std::vector<JoinEdge> m_edges;
+  std::shared_ptr<JoinGraph> _join_graph;
 };
 }
