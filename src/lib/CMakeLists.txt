@@ -163,7 +163,7 @@ set(
     optimizer/abstract_syntax_tree/ast_to_operator_translator.cpp
     optimizer/abstract_syntax_tree/delete_node.cpp
     optimizer/abstract_syntax_tree/delete_node.hpp
-    optimizer/abstract_syntax_tree/mock_table_node.cpp
+    optimizer/abstract_syntax_tree/dummy_table_node.cpp
     optimizer/abstract_syntax_tree/dummy_table_node.hpp
     optimizer/abstract_syntax_tree/join_node.cpp
     optimizer/abstract_syntax_tree/join_node.hpp
