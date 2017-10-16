@@ -88,8 +88,14 @@ void ColumnStatistics<ColumnType>::_initialize_min_max() const {
   aggregate->execute();
 
   auto aggregate_table = aggregate->get_output();
-  _min = aggregate_table->template get_value<ColumnType>(ColumnID{0}, 0);
-  _max = aggregate_table->template get_value<ColumnType>(ColumnID{1}, 0);
+
+  auto min_column =
+      std::static_pointer_cast<ValueColumn<ColumnType>>(aggregate_table->get_chunk(ChunkID{0}).get_column(ColumnID{0}));
+  _min = min_column->values()[0];
+
+  auto max_column =
+      std::static_pointer_cast<ValueColumn<ColumnType>>(aggregate_table->get_chunk(ChunkID{0}).get_column(ColumnID{1}));
+  _max = max_column->values()[0];
 }
 
 template <typename ColumnType>
@@ -191,9 +197,7 @@ ColumnSelectivityResult ColumnStatistics<ColumnType>::estimate_selectivity_for_p
 // intentionally no break
 // if ColumnType is a floating point number,
 // OpLessThanEquals behaviour is expected instead of OpLessThan
-#if __has_cpp_attribute(fallthrough)
       [[fallthrough]];
-#endif
     }
     case ScanType::OpLessThanEquals: {
       return _create_column_stats_for_range_predicate(_get_or_calculate_min(), casted_value);
@@ -208,9 +212,7 @@ ColumnSelectivityResult ColumnStatistics<ColumnType>::estimate_selectivity_for_p
 // intentionally no break
 // if ColumnType is a floating point number,
 // OpGreaterThanEquals behaviour is expected instead of OpGreaterThan
-#if __has_cpp_attribute(fallthrough)
       [[fallthrough]];
-#endif
     }
     case ScanType::OpGreaterThanEquals: {
       return _create_column_stats_for_range_predicate(casted_value, _get_or_calculate_max());

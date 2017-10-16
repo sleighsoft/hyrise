@@ -71,7 +71,7 @@ TEST_F(JoinGraphTest, SearchJoinGraphSimple) {
 
   EXPECT_JOIN_VERTICES(join_graph->vertices(), {table_a_node, table_b_node});
 
-  EXPECT_EQ(join_graph->edges().size(), 1);
+  EXPECT_EQ(join_graph->edges().size(), 1u);
   EXPECT_JOIN_EDGE(join_graph, table_a_node, table_b_node, ColumnID{0}, ColumnID{1}, ScanType::OpEquals);
 }
 
@@ -111,14 +111,14 @@ TEST_F(JoinGraphTest, SearchJoinGraphMedium) {
   // Searching from the root shouldn't yield anything except the root as it is not a join
   const auto join_graph_a = JoinGraph::build_join_graph(projection_node);
   EXPECT_JOIN_VERTICES(join_graph_a->vertices(), {projection_node});
-  EXPECT_EQ(join_graph_a->edges().size(), 0);
+  EXPECT_EQ(join_graph_a->edges().size(), 0u);
 
   // Searching from join_a should yield a non-empty join graph
   const auto join_graph_b = JoinGraph::build_join_graph(join_a_node);
 
   EXPECT_JOIN_VERTICES(join_graph_b->vertices(), {table_a_node, table_b_node, predicate_node});
 
-  EXPECT_EQ(join_graph_b->edges().size(), 2);
+  EXPECT_EQ(join_graph_b->edges().size(), 2u);
   EXPECT_JOIN_EDGE(join_graph_b, table_a_node, predicate_node, ColumnID{0}, ColumnID{1}, ScanType::OpGreaterThan);
   EXPECT_JOIN_EDGE(join_graph_b, table_b_node, predicate_node, ColumnID{0}, ColumnID{2}, ScanType::OpEquals);
 }
@@ -169,7 +169,7 @@ TEST_F(JoinGraphTest, SearchJoinGraphLarge) {
   EXPECT_JOIN_VERTICES(join_graph->vertices(),
                        {table_a_0_node, table_b_0_node, table_c_0_node, table_b_1_node, cross_join_node});
 
-  EXPECT_EQ(join_graph->edges().size(), 4);
+  EXPECT_EQ(join_graph->edges().size(), 4u);
   EXPECT_JOIN_EDGE(join_graph, table_a_0_node, cross_join_node, ColumnID{0}, ColumnID{2}, ScanType::OpGreaterThan);
   EXPECT_JOIN_EDGE(join_graph, table_b_0_node, cross_join_node, ColumnID{1}, ColumnID{3}, ScanType::OpEquals);
   EXPECT_JOIN_EDGE(join_graph, table_b_0_node, table_c_0_node, ColumnID{0}, ColumnID{2}, ScanType::OpEquals);
