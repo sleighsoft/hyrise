@@ -1,4 +1,4 @@
-#include "optimizer/strategy/join_reordering_base_test.hpp"
+#include "join_reordering_base_test.hpp"
 
 #include "optimizer/strategy/join_ordering/dpsize.hpp"
 #include "planviz/ast_visualizer.hpp"
@@ -17,9 +17,9 @@ class DPsizeTest: public JoinReorderingBaseTest {
 };
 
 TEST_F(DPsizeTest, Basics) {
-  auto root = DPsize(_join_graph_a).run();
+//  auto root = DPsize(_join_graph_a).run();
 
-  ASTVisualizer::visualize({root}, "dpsize.dot", "dpsize.png");
+//  ASTVisualizer::visualize({root}, "dpsize.dot", "dpsize.png");
 }
 
 }

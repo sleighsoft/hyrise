@@ -26,11 +26,11 @@ class JoinGraphTest : public BaseTest {
                                const std::shared_ptr<AbstractASTNode>& node_b, ColumnID column_id_a,
                                ColumnID column_id_b, ScanType scan_type) {
     for (const auto& edge : join_graph->edges()) {
-      if (join_graph->vertices().size() <= edge.node_indices.first) continue;
-      if (join_graph->vertices().size() <= edge.node_indices.second) continue;
+      if (join_graph->vertices().size() <= edge.vertex_indices.first) continue;
+      if (join_graph->vertices().size() <= edge.vertex_indices.second) continue;
 
-      const auto& edge_node_a = join_graph->vertices()[edge.node_indices.first];
-      const auto& edge_node_b = join_graph->vertices()[edge.node_indices.second];
+      const auto& edge_node_a = join_graph->vertices()[edge.vertex_indices.first];
+      const auto& edge_node_b = join_graph->vertices()[edge.vertex_indices.second];
 
       if (edge_node_a == node_a) {
         if (edge_node_b == node_b && edge.predicate.column_ids == std::make_pair(column_id_a, column_id_b)) {

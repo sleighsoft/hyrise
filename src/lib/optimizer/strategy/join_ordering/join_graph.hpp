@@ -22,7 +22,7 @@ struct JoinPredicate {
 
 struct JoinEdge {
   JoinPredicate predicate;
-  std::pair<JoinVertexId, JoinVertexId> node_indices{INVALID_JOIN_VERTEX_ID, INVALID_JOIN_VERTEX_ID};
+  std::pair<JoinVertexId, JoinVertexId> vertex_indices{INVALID_JOIN_VERTEX_ID, INVALID_JOIN_VERTEX_ID};
 };
 
 class JoinGraph final {

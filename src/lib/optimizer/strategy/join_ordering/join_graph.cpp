@@ -41,10 +41,10 @@ void JoinGraph::print(std::ostream& out) const {
   }
   out << "==== Edges ====" << std::endl;
   for (const auto & edge : _edges) {
-    std::cout << edge.node_indices.first << " <-- "
+    std::cout << edge.vertex_indices.first << " <-- "
               << edge.predicate.column_ids.first << " "
               << scan_type_to_string.left.at(edge.predicate.scan_type) << " "
-              << edge.predicate.column_ids.second << " --> " << edge.node_indices.second << std::endl;
+              << edge.predicate.column_ids.second << " --> " << edge.vertex_indices.second << std::endl;
   }
 
   out << "===================" << std::endl;
@@ -113,9 +113,9 @@ void JoinGraph::_traverse_ast_for_join_graph(const std::shared_ptr<AbstractASTNo
   const auto find_left_result = find_column(left_column_id, left_vertex_offset, right_vertex_offset);
   const auto find_right_result = find_column(right_column_id, right_vertex_offset, o_vertices.size());
 
-  edge.node_indices.first = find_left_result.first;
+  edge.vertex_indices.first = find_left_result.first;
   edge.predicate.column_ids.first = find_left_result.second;
-  edge.node_indices.second = find_right_result.first;
+  edge.vertex_indices.second = find_right_result.first;
   edge.predicate.column_ids.second = find_right_result.second;
 
   o_edges.emplace_back(edge);
