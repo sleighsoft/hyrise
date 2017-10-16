@@ -6,8 +6,8 @@
 #include "gtest/gtest_prod.h"
 
 #include "abstract_rule.hpp"
-#include "optimizer/strategy/join_ordering/join_ordering_types.hpp"
 #include "optimizer/strategy/join_ordering/join_graph.hpp"
+#include "optimizer/strategy/join_ordering/join_ordering_types.hpp"
 
 namespace opossum {
 

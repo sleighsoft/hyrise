@@ -11,11 +11,10 @@
 
 namespace opossum {
 
-DPsize::DPsize(const std::shared_ptr<JoinGraph> &join_graph)
-    : _join_graph(join_graph) {}
+DPsize::DPsize(const std::shared_ptr<JoinGraph>& join_graph) : _join_graph(join_graph) {}
 
 std::shared_ptr<AbstractASTNode> DPsize::run() {
-  const auto & vertices = _join_graph->vertices();
+  const auto& vertices = _join_graph->vertices();
 
   std::vector<JoinTableNode> table_nodes(vertices.size());
   for (size_t table_idx = 0; table_idx < vertices.size(); ++table_idx) {
@@ -116,7 +115,7 @@ std::vector<JoinEdge> DPsize::_find_edges_between_sets(const TableNodeSet& left,
 std::shared_ptr<JoinPlanNode> DPsize::_join_plans(const std::shared_ptr<JoinPlanNode>& best_plan_left,
                                                   const std::shared_ptr<JoinPlanNode>& best_plan_right,
                                                   const std::vector<JoinEdge>& join_edges) const {
-  const auto & edges = _join_graph->edges();
+  const auto& edges = _join_graph->edges();
 
   auto min_row_count = std::numeric_limits<float>::max();
   auto min_row_count_edge_idx = size_t{0};

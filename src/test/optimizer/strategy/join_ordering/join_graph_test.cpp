@@ -21,7 +21,7 @@ class JoinGraphTest : public BaseTest {
 
   void TearDown() override {}
 
-  static void EXPECT_JOIN_EDGE(const std::shared_ptr<JoinGraph> &join_graph,
+  static void EXPECT_JOIN_EDGE(const std::shared_ptr<JoinGraph>& join_graph,
                                const std::shared_ptr<AbstractASTNode>& node_a,
                                const std::shared_ptr<AbstractASTNode>& node_b, ColumnID column_id_a,
                                ColumnID column_id_b, ScanType scan_type) {
@@ -146,9 +146,9 @@ TEST_F(JoinGraphTest, SearchJoinGraphLarge) {
   auto join_b_node =
       std::make_shared<JoinNode>(JoinMode::Inner, std::make_pair(ColumnID{1}, ColumnID{5}), ScanType::OpEquals);
   auto join_c_node =
-    std::make_shared<JoinNode>(JoinMode::Inner, std::make_pair(ColumnID{0}, ColumnID{2}), ScanType::OpEquals);
+      std::make_shared<JoinNode>(JoinMode::Inner, std::make_pair(ColumnID{0}, ColumnID{2}), ScanType::OpEquals);
   auto join_d_node =
-    std::make_shared<JoinNode>(JoinMode::Inner, std::make_pair(ColumnID{0}, ColumnID{1}), ScanType::OpEquals);
+      std::make_shared<JoinNode>(JoinMode::Inner, std::make_pair(ColumnID{0}, ColumnID{1}), ScanType::OpEquals);
   auto cross_join_node = std::make_shared<JoinNode>(JoinMode::Cross);
   auto table_a_0_node = std::make_shared<StoredTableNode>("table_a");
   auto table_a_1_node = std::make_shared<StoredTableNode>("table_a");

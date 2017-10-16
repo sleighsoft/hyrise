@@ -4,18 +4,16 @@
 #include <numeric>
 #include <set>
 
+#include "join_graph.hpp"
 #include "optimizer/abstract_syntax_tree/join_node.hpp"
 #include "optimizer/abstract_syntax_tree/predicate_node.hpp"
 #include "optimizer/table_statistics.hpp"
 #include "utils/assert.hpp"
-#include "join_graph.hpp"
 
 namespace opossum {
 
-GreedyJoinOrdering::GreedyJoinOrdering(const std::shared_ptr<const JoinGraph> & input_graph):
-  _input_graph(input_graph) {
-
-}
+GreedyJoinOrdering::GreedyJoinOrdering(const std::shared_ptr<const JoinGraph>& input_graph)
+    : _input_graph(input_graph) {}
 
 std::shared_ptr<AbstractASTNode> GreedyJoinOrdering::run() {
   _left_column_id_of_vertex.resize(_input_graph->vertices().size(), INVALID_COLUMN_ID);
@@ -25,13 +23,13 @@ std::shared_ptr<AbstractASTNode> GreedyJoinOrdering::run() {
    */
   _edges_by_vertex_id.resize(_input_graph->vertices().size());
   for (size_t edge_idx = 0; edge_idx < _input_graph->edges().size(); ++edge_idx) {
-    auto & edge = _input_graph->edges()[edge_idx];
+    auto& edge = _input_graph->edges()[edge_idx];
     _edges_by_vertex_id[edge.vertex_indices.first].emplace_back(edge_idx);
     _edges_by_vertex_id[edge.vertex_indices.second].emplace_back(edge_idx);
   }
 
   // Vertices still to be added to the join plan
-  const auto & input_vertices = _input_graph->vertices();
+  const auto& input_vertices = _input_graph->vertices();
 
   for (size_t edge_idx = 0; edge_idx < _input_graph->edges().size(); ++edge_idx) {
     _remaining_edge_indices.emplace(edge_idx);
@@ -55,7 +53,7 @@ std::shared_ptr<AbstractASTNode> GreedyJoinOrdering::run() {
   for (size_t join_plan_size = 1; join_plan_size < input_vertices.size(); ++join_plan_size) {
     Assert(!neighbourhood_edge_indices.empty(),
            "No neighbourhood left, but the join plan is not done yet. "
-             "This means the input graph was not connected in the first place");
+           "This means the input graph was not connected in the first place");
 
     /**
      * Find the next vertex to join and store it in `next_join_vertex_idx`
@@ -91,11 +89,11 @@ std::shared_ptr<AbstractASTNode> GreedyJoinOrdering::run() {
     /**
      * Append a predicate for each edge that was also added to the join plan, but was not the join_edge
      */
-    for (const auto & edge_idx : predicate_edge_indices) {
-      const auto & predicate_edge = _input_graph->edges()[edge_idx];
+    for (const auto& edge_idx : predicate_edge_indices) {
+      const auto& predicate_edge = _input_graph->edges()[edge_idx];
       const auto predicate_column_ids = get_edge_column_ids(edge_idx, join_vertex_ids.second);
-      auto new_root = std::make_shared<PredicateNode>(predicate_column_ids.first,
-                                                      predicate_edge.predicate.scan_type, predicate_column_ids.second);
+      auto new_root = std::make_shared<PredicateNode>(predicate_column_ids.first, predicate_edge.predicate.scan_type,
+                                                      predicate_column_ids.second);
       new_root->set_left_child(current_root);
       current_root = new_root;
     }
@@ -121,7 +119,6 @@ JoinVertexId GreedyJoinOrdering::pick_cheapest_vertex(const JoinGraph::Vertices&
 
 std::vector<size_t> GreedyJoinOrdering::update_neighbourhood(std::set<size_t>& neighbourhood_edges,
                                                              size_t join_edge_idx) {
-
   const auto& join_edge = _input_graph->edges()[join_edge_idx];
 
   auto vertex_ids = order_edge_vertices(join_edge);
@@ -129,7 +126,7 @@ std::vector<size_t> GreedyJoinOrdering::update_neighbourhood(std::set<size_t>& n
   neighbourhood_edges.erase(join_edge_idx);
 
   std::vector<size_t> predicate_vertex_indices;
-  for (const auto &edge_idx : neighbourhood_edges) {
+  for (const auto& edge_idx : neighbourhood_edges) {
     const auto& edge = _input_graph->edges()[edge_idx];
 
     if (edge.vertex_indices.first == vertex_ids.first || edge.vertex_indices.second == vertex_ids.first) {
@@ -145,32 +142,33 @@ std::vector<size_t> GreedyJoinOrdering::update_neighbourhood(std::set<size_t>& n
 }
 
 float GreedyJoinOrdering::cost_join(const std::shared_ptr<AbstractASTNode>& left_node, size_t edge_idx) const {
-  const auto & edge = _input_graph->edges()[edge_idx];
+  const auto& edge = _input_graph->edges()[edge_idx];
 
   const auto vertex_ids = order_edge_vertices(edge);
   const auto& new_vertex = _input_graph->vertices()[vertex_ids.second];
   const auto join_column_ids = get_edge_column_ids(edge_idx, vertex_ids.second);
 
-  const auto join_stats = left_node->get_statistics()->
-    generate_predicated_join_statistics(new_vertex->get_statistics(), JoinMode::Inner, join_column_ids,
-                                        edge.predicate.scan_type);
+  const auto join_stats = left_node->get_statistics()->generate_predicated_join_statistics(
+      new_vertex->get_statistics(), JoinMode::Inner, join_column_ids, edge.predicate.scan_type);
   return join_stats->row_count();
 }
 
 std::pair<ColumnID, ColumnID> GreedyJoinOrdering::get_edge_column_ids(size_t edge_idx,
                                                                       JoinVertexId right_vertex_id) const {
-  const auto & edge = _input_graph->edges()[edge_idx];
+  const auto& edge = _input_graph->edges()[edge_idx];
   if (edge.vertex_indices.first == right_vertex_id) {
-    return std::make_pair(ColumnID{_left_column_id_of_vertex[edge.vertex_indices.second] + edge.predicate.column_ids.second},
-      edge.predicate.column_ids.first);
+    return std::make_pair(
+        ColumnID{_left_column_id_of_vertex[edge.vertex_indices.second] + edge.predicate.column_ids.second},
+        edge.predicate.column_ids.first);
   }
-  return std::make_pair(ColumnID{_left_column_id_of_vertex[edge.vertex_indices.first] + edge.predicate.column_ids.first},
-                        edge.predicate.column_ids.second);
+  return std::make_pair(
+      ColumnID{_left_column_id_of_vertex[edge.vertex_indices.first] + edge.predicate.column_ids.first},
+      edge.predicate.column_ids.second);
 };
 
 std::set<size_t> GreedyJoinOrdering::extract_vertex_neighbourhood(JoinVertexId vertex_idx) {
   std::set<size_t> edge_indices;
-  for (const auto & edge_idx : _remaining_edge_indices) {
+  for (const auto& edge_idx : _remaining_edge_indices) {
     const auto& edge = _input_graph->edges()[edge_idx];
 
     if (edge.vertex_indices.first == vertex_idx || edge.vertex_indices.second == vertex_idx) {
@@ -178,7 +176,7 @@ std::set<size_t> GreedyJoinOrdering::extract_vertex_neighbourhood(JoinVertexId v
     }
   }
 
-  for (const auto & edge_idx : edge_indices) {
+  for (const auto& edge_idx : edge_indices) {
     _remaining_edge_indices.erase(edge_idx);
   }
 
@@ -197,5 +195,4 @@ std::pair<JoinVertexId, JoinVertexId> GreedyJoinOrdering::order_edge_vertices(co
 
   return std::make_pair(new_vertex_idx, contained_vertex_idx);
 };
-
 }

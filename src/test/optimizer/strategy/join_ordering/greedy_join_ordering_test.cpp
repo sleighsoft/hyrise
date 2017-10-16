@@ -6,7 +6,6 @@ namespace opossum {
 
 class GreedyJoinOrderingTest : public JoinReorderingBaseTest {
  public:
-
 };
 
 TEST_F(GreedyJoinOrderingTest, SimpleGraph) {
@@ -28,5 +27,4 @@ TEST_F(GreedyJoinOrderingTest, SimpleGraph) {
   ASSERT_EQ(plan->left_child()->left_child(), _table_node_c);
   ASSERT_EQ(plan->left_child()->right_child(), _table_node_d);
 }
-
 }

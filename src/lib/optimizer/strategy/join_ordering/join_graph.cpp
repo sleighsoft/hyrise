@@ -2,11 +2,11 @@
 
 #include <utility>
 
+#include "constant_mappings.hpp"
 #include "optimizer/abstract_syntax_tree/abstract_ast_node.hpp"
 #include "optimizer/abstract_syntax_tree/join_node.hpp"
 #include "types.hpp"
 #include "utils/assert.hpp"
-#include "constant_mappings.hpp"
 
 namespace opossum {
 
@@ -19,40 +19,32 @@ std::shared_ptr<JoinGraph> JoinGraph::build_join_graph(const std::shared_ptr<Abs
   return std::make_shared<JoinGraph>(std::move(vertices), std::move(edges));
 }
 
-JoinGraph::JoinGraph(Vertices && vertices, Edges && edges):
-  _vertices(std::move(vertices)),
-  _edges(std::move(edges))
-{}
+JoinGraph::JoinGraph(Vertices&& vertices, Edges&& edges) : _vertices(std::move(vertices)), _edges(std::move(edges)) {}
 
-const JoinGraph::Vertices& JoinGraph::vertices() const {
-  return _vertices;
-}
+const JoinGraph::Vertices& JoinGraph::vertices() const { return _vertices; }
 
-const JoinGraph::Edges& JoinGraph::edges() const {
-  return _edges;
-}
+const JoinGraph::Edges& JoinGraph::edges() const { return _edges; }
 
 void JoinGraph::print(std::ostream& out) const {
   out << "==== JoinGraph ====" << std::endl;
   out << "==== Vertices ====" << std::endl;
   for (size_t vertex_idx = 0; vertex_idx < _vertices.size(); ++vertex_idx) {
-    const auto & vertex = _vertices[vertex_idx];
+    const auto& vertex = _vertices[vertex_idx];
     std::cout << vertex_idx << ":  " << vertex->description() << std::endl;
   }
   out << "==== Edges ====" << std::endl;
-  for (const auto & edge : _edges) {
-    std::cout << edge.vertex_indices.first << " <-- "
-              << edge.predicate.column_ids.first << " "
-              << scan_type_to_string.left.at(edge.predicate.scan_type) << " "
-              << edge.predicate.column_ids.second << " --> " << edge.vertex_indices.second << std::endl;
+  for (const auto& edge : _edges) {
+    std::cout << edge.vertex_indices.first << " <-- " << edge.predicate.column_ids.first << " "
+              << scan_type_to_string.left.at(edge.predicate.scan_type) << " " << edge.predicate.column_ids.second
+              << " --> " << edge.vertex_indices.second << std::endl;
   }
 
   out << "===================" << std::endl;
 }
 
 void JoinGraph::_traverse_ast_for_join_graph(const std::shared_ptr<AbstractASTNode>& node,
-                                         std::vector<std::shared_ptr<AbstractASTNode>>& o_vertices,
-                                         std::vector<JoinEdge>& o_edges, ColumnID column_id_offset) {
+                                             std::vector<std::shared_ptr<AbstractASTNode>>& o_vertices,
+                                             std::vector<JoinEdge>& o_edges, ColumnID column_id_offset) {
   // To make it possible to call search_join_graph() on both children without having to check whether they are nullptr.
   if (!node) return;
 
@@ -83,7 +75,7 @@ void JoinGraph::_traverse_ast_for_join_graph(const std::shared_ptr<AbstractASTNo
    * Process children on the right side
    */
   const auto right_column_offset =
-    ColumnID{static_cast<ColumnID::base_type>(column_id_offset + node->left_child()->output_col_count())};
+      ColumnID{static_cast<ColumnID::base_type>(column_id_offset + node->left_child()->output_col_count())};
   const auto right_vertex_offset = o_vertices.size();
   _traverse_ast_for_join_graph(node->right_child(), o_vertices, o_edges, right_column_offset);
 
@@ -98,9 +90,9 @@ void JoinGraph::_traverse_ast_for_join_graph(const std::shared_ptr<AbstractASTNo
   auto right_column_id = join_node->join_column_ids()->second;
 
   // Find vertex indices
-  const auto find_column = [&o_vertices] (auto column_id, const auto vertex_range_begin, const auto vertex_range_end) {
+  const auto find_column = [&o_vertices](auto column_id, const auto vertex_range_begin, const auto vertex_range_end) {
     for (JoinVertexId vertex_idx = vertex_range_begin; vertex_idx < vertex_range_end; ++vertex_idx) {
-      const auto &vertex = o_vertices[vertex_idx];
+      const auto& vertex = o_vertices[vertex_idx];
       if (column_id < vertex->output_col_count()) {
         return std::make_pair(vertex_idx, column_id);
       }
@@ -119,7 +111,5 @@ void JoinGraph::_traverse_ast_for_join_graph(const std::shared_ptr<AbstractASTNo
   edge.predicate.column_ids.second = find_right_result.second;
 
   o_edges.emplace_back(edge);
-
 }
-
 }

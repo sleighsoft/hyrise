@@ -14,7 +14,7 @@ class JoinGraph;
 
 class GreedyJoinOrdering {
  public:
-  explicit GreedyJoinOrdering(const std::shared_ptr<const JoinGraph> &input_graph);
+  explicit GreedyJoinOrdering(const std::shared_ptr<const JoinGraph>& input_graph);
 
   std::shared_ptr<AbstractASTNode> run();
 
@@ -29,17 +29,16 @@ class GreedyJoinOrdering {
 
   std::set<size_t> _remaining_edge_indices;
 
-  JoinVertexId pick_cheapest_vertex(const JoinGraph::Vertices &vertices) const;
+  JoinVertexId pick_cheapest_vertex(const JoinGraph::Vertices& vertices) const;
 
-  std::vector<size_t> update_neighbourhood(std::set<size_t> &neighbourhood_edges, size_t join_edge_idx);
+  std::vector<size_t> update_neighbourhood(std::set<size_t>& neighbourhood_edges, size_t join_edge_idx);
 
-  float cost_join(const std::shared_ptr<AbstractASTNode> &left_node, size_t edge_idx) const;
+  float cost_join(const std::shared_ptr<AbstractASTNode>& left_node, size_t edge_idx) const;
 
   std::pair<ColumnID, ColumnID> get_edge_column_ids(size_t edge_idx, JoinVertexId right_vertex_id) const;
 
   std::set<size_t> extract_vertex_neighbourhood(JoinVertexId vertex_idx);
 
-  std::pair<JoinVertexId, JoinVertexId> order_edge_vertices(const JoinEdge &edge) const;
+  std::pair<JoinVertexId, JoinVertexId> order_edge_vertices(const JoinEdge& edge) const;
 };
-
 }

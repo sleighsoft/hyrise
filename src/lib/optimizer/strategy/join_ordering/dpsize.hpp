@@ -5,8 +5,8 @@
 #include <vector>
 
 #include "common.hpp"
-#include "join_ordering_types.hpp"
 #include "join_graph.hpp"
+#include "join_ordering_types.hpp"
 #include "types.hpp"
 
 namespace opossum {
@@ -34,7 +34,7 @@ struct JoinPlanNode {
 
 class DPsize final {
  public:
-  explicit DPsize(const std::shared_ptr<JoinGraph> &join_graph);
+  explicit DPsize(const std::shared_ptr<JoinGraph>& join_graph);
 
   std::shared_ptr<AbstractASTNode> run();
 

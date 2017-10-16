@@ -5,21 +5,16 @@
 
 namespace opossum {
 
-class DPsizeTest: public JoinReorderingBaseTest {
+class DPsizeTest : public JoinReorderingBaseTest {
  public:
-  void SetUp() override {
+  void SetUp() override {}
 
-  }
-
-  void TearDown() override {
-
-  }
+  void TearDown() override {}
 };
 
 TEST_F(DPsizeTest, Basics) {
-//  auto root = DPsize(_join_graph_a).run();
+  //  auto root = DPsize(_join_graph_a).run();
 
-//  ASTVisualizer::visualize({root}, "dpsize.dot", "dpsize.png");
+  //  ASTVisualizer::visualize({root}, "dpsize.dot", "dpsize.png");
 }
-
 }
