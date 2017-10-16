@@ -25,6 +25,10 @@ TableStatistics::TableStatistics(float row_count, size_t column_count):
 
 float TableStatistics::row_count() const { return _row_count; }
 
+const std::vector<std::shared_ptr<BaseColumnStatistics>>& TableStatistics::column_statistics() const {
+  return _column_statistics;
+}
+
 std::shared_ptr<TableStatistics> TableStatistics::predicate_statistics(const ColumnID column_id,
                                                                        const ScanType scan_type,
                                                                        const AllParameterVariant& value,
