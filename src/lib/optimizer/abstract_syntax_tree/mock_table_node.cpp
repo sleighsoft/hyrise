@@ -9,7 +9,8 @@
 
 namespace opossum {
 
-MockTableNode::MockTableNode(const std::shared_ptr<TableStatistics>& statistics) : AbstractASTNode(ASTNodeType::Mock) {
+MockTableNode::MockTableNode(const std::shared_ptr<TableStatistics>& statistics, const std::string & name) :
+  AbstractASTNode(ASTNodeType::Mock), _name(name) {
   set_statistics(statistics);
 
   for (size_t column_statistics_idx = 0; column_statistics_idx < statistics->column_statistics().size();
@@ -44,5 +45,5 @@ std::vector<ColumnID> MockTableNode::get_output_column_ids_for_table(const std::
 
 void MockTableNode::_on_child_changed() { Fail("MockTableNode cannot have children."); }
 
-std::string MockTableNode::description() const { return "MockTable"; }
+std::string MockTableNode::description() const { return "MockTable " + _name; }
 }  // namespace opossum

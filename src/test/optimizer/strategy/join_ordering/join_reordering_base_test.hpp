@@ -22,19 +22,15 @@ class JoinOrderingTableStatistics : public TableStatistics {
 class JoinReorderingBaseTest : public StrategyBaseTest {
  public:
   JoinReorderingBaseTest() {
-    const auto make_mock_table = [](int32_t min, int32_t max, float row_count) {
-      return std::make_shared<MockTableNode>(std::make_shared<JoinOrderingTableStatistics>(min, max, row_count));
+    const auto make_mock_table = [](const std::string & name, int32_t min, int32_t max, float row_count) {
+      return std::make_shared<MockTableNode>(std::make_shared<JoinOrderingTableStatistics>(min, max, row_count), name);
     };
 
-    const auto make_complete_join_graph = [](std::vector<std::shared_ptr<AbstractASTNode>> vertices) {
+    const auto make_clique_join_graph = [](std::vector<std::shared_ptr<AbstractASTNode>> vertices) {
       JoinGraph::Edges edges;
 
       for (size_t vertex_idx_a = 0; vertex_idx_a < vertices.size(); ++vertex_idx_a) {
-        for (size_t vertex_idx_b = 0; vertex_idx_b < vertices.size(); ++vertex_idx_b) {
-          if (vertex_idx_a == vertex_idx_b) {
-            continue;
-          }
-
+        for (size_t vertex_idx_b = vertex_idx_a + 1; vertex_idx_b < vertices.size(); ++vertex_idx_b) {
           JoinEdge edge;
           edge.vertex_indices = {vertex_idx_a, vertex_idx_b};
 
@@ -73,14 +69,14 @@ class JoinReorderingBaseTest : public StrategyBaseTest {
       return std::make_shared<JoinGraph>(std::move(vertices), std::move(edges));
     };
 
-    _table_node_a = make_mock_table(10, 80, 70);
-    _table_node_b = make_mock_table(10, 60, 60);
-    _table_node_c = make_mock_table(50, 100, 15);
-    _table_node_d = make_mock_table(53, 57, 10);
-    _table_node_e = make_mock_table(40, 90, 600);
+    _table_node_a = make_mock_table("a", 10, 80, 70);
+    _table_node_b = make_mock_table("b", 10, 60, 60);
+    _table_node_c = make_mock_table("c", 50, 100, 15);
+    _table_node_d = make_mock_table("d", 53, 57, 10);
+    _table_node_e = make_mock_table("e", 40, 90, 600);
 
     _join_graph_cde_chain = make_chain_join_graph({_table_node_c, _table_node_d, _table_node_e});
-    _join_graph_cde_complete = make_complete_join_graph({_table_node_c, _table_node_d, _table_node_e});
+    _join_graph_bcd_clique = make_clique_join_graph({_table_node_b, _table_node_c, _table_node_d});
   }
 
  protected:
@@ -90,6 +86,6 @@ class JoinReorderingBaseTest : public StrategyBaseTest {
   std::shared_ptr<MockTableNode> _table_node_d;
   std::shared_ptr<MockTableNode> _table_node_e;
   std::shared_ptr<JoinGraph> _join_graph_cde_chain;
-  std::shared_ptr<JoinGraph> _join_graph_cde_complete;
+  std::shared_ptr<JoinGraph> _join_graph_bcd_clique;
 };
 }
