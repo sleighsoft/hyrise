@@ -81,6 +81,7 @@ std::shared_ptr<AbstractASTNode> GreedyJoinOrdering::run() {
     const auto join_vertex_ids = order_edge_vertices(join_edge);
 
     const auto join_column_ids = get_edge_column_ids(next_join_edge_idx, join_vertex_ids.second);
+    std::cout << "JoinColumnIds: " << join_column_ids.first << " " << join_column_ids.second << std::endl;
 
     // Update the neighbourhood of the join plan with the new vertex
     const auto predicate_edge_indices = update_neighbourhood(neighbourhood_edge_indices, next_join_edge_idx);
@@ -169,15 +170,26 @@ float GreedyJoinOrdering::cost_join(const std::shared_ptr<AbstractASTNode>& left
 
 std::pair<ColumnID, ColumnID> GreedyJoinOrdering::get_edge_column_ids(size_t edge_idx,
                                                                       JoinVertexId right_vertex_id) const {
+
+  /**
+   * Returns the ColumnIDs required for joining the vertex right_vertex_id to the join plan using the edge edge_idx
+   * The .first member of the returned pair is the ColumnID on the left side of the join, the .second member the ColumnID
+   * in the newly joined vertex.
+   * NOTE: When creating the JoinNode, this might require the scan type to be flipped. TODO(moritz)
+   */
+  std::cout << "Identifying column ids of edge " << edge_idx << std::endl;
+
   const auto& edge = _input_graph->edges()[edge_idx];
-  if (edge.vertex_indices.first == right_vertex_id) {
+  if (edge.vertex_indices.second == right_vertex_id) {
+    std::cout << "  normal ordering" << std::endl;
     return std::make_pair(
-        ColumnID{_left_column_id_of_vertex[edge.vertex_indices.second] + edge.predicate.column_ids.second},
-        edge.predicate.column_ids.first);
-  }
-  return std::make_pair(
       ColumnID{_left_column_id_of_vertex[edge.vertex_indices.first] + edge.predicate.column_ids.first},
       edge.predicate.column_ids.second);
+  }
+  std::cout << "  switched ordering" << std::endl;
+  return std::make_pair(
+    ColumnID{_left_column_id_of_vertex[edge.vertex_indices.second] + edge.predicate.column_ids.second},
+    edge.predicate.column_ids.first);
 };
 
 std::set<size_t> GreedyJoinOrdering::extract_vertex_neighbourhood(JoinVertexId vertex_idx) {
