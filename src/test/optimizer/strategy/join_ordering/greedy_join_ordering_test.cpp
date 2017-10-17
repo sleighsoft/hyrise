@@ -21,6 +21,8 @@ TEST_F(GreedyJoinOrderingTest, SimpleGraph) {
 
   auto plan = GreedyJoinOrdering(_join_graph_cde_chain).run();
 
+  plan->print();
+
   ASSERT_INNER_JOIN_NODE(plan, ScanType::OpEquals, ColumnID{1}, ColumnID{0});
   ASSERT_INNER_JOIN_NODE(plan->left_child(), ScanType::OpEquals, ColumnID{0}, ColumnID{0});
   ASSERT_EQ(plan->right_child(), _table_node_e);
