@@ -257,6 +257,8 @@ set(
     utils/murmur_hash.hpp
     utils/numa_memory_resource.cpp
     utils/numa_memory_resource.hpp
+    utils/type_utils.cpp
+    utils/type_utils.hpp
 )
 
 set(
