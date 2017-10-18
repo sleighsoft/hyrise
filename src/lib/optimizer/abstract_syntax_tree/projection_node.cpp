@@ -20,7 +20,7 @@ ProjectionNode::ProjectionNode(const std::vector<std::shared_ptr<Expression>>& c
 std::string ProjectionNode::description() const {
   std::ostringstream desc;
 
-  desc << "Projection: ";
+  desc << "[Projection] ";
 
   for (const auto& column : output_column_names()) {
     desc << " " << column;

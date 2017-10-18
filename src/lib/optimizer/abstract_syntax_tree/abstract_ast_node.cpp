@@ -215,6 +215,31 @@ void AbstractASTNode::print(const uint32_t level, std::ostream& out) const {
   }
 }
 
+std::string AbstractASTNode::get_verbose_column_name(ColumnID column_id) const {
+  Assert(!_right_child, "Nodes with both children need to override get_verbose_column_name()");
+
+  /**
+   *  A AbstractASTNode without a left child should generally be a StoredTableNode, which overrides this function. But
+   *  since get_verbose_column_name() is just a convenience function we don't want to force anyone to override this
+   *  function when experimenting with nodes and handle the case of no left child here as well.
+   */
+  if (!_left_child) {
+    if (_table_alias) {
+      return *_table_alias + "." + output_column_names()[column_id];
+    }
+
+    return output_column_names()[column_id];
+  }
+
+  const auto verbose_name = _left_child->get_verbose_column_name(column_id);
+
+  if (_table_alias) {
+    return *_table_alias + "." + verbose_name;
+  }
+
+  return verbose_name;
+}
+
 optional<NamedColumnReference> AbstractASTNode::_resolve_local_alias(const NamedColumnReference &reference) const {
   if (reference.table_name && _table_alias) {
     if (*reference.table_name == *_table_alias) {

@@ -33,6 +33,8 @@ const std::vector<ColumnID>& AggregateNode::groupby_column_ids() const { return 
 std::string AggregateNode::description() const {
   std::ostringstream s;
 
+  s << "[Aggregate]";
+
   auto stream_aggregate = [&](const std::shared_ptr<Expression>& aggregate_expr) {
     s << aggregate_expr->to_string();
     if (aggregate_expr->alias()) {

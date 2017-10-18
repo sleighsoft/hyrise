@@ -100,6 +100,8 @@ class ColumnStatisticsTest : public BaseTest {
   std::shared_ptr<Table> _table_uniform_distribution;
   std::vector<std::shared_ptr<BaseColumnStatistics>> _column_statistics_uniform_columns;
 
+  std::shared_ptr<TableStatistics> _table_statistics_a;
+
   //  {below min, min, middle, max, above max}
   std::vector<int32_t> _int_values{0, 1, 3, 6, 7};
   std::vector<float> _float_values{0.f, 1.f, 3.f, 6.f, 7.f};

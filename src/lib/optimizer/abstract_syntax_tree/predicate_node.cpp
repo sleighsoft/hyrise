@@ -4,6 +4,8 @@
 #include <sstream>
 #include <string>
 
+#include "boost/lexical_cast.hpp"
+
 #include "common.hpp"
 #include "constant_mappings.hpp"
 #include "optimizer/table_statistics.hpp"
@@ -21,12 +23,21 @@ PredicateNode::PredicateNode(const ColumnID column_id, const ScanType scan_type,
       _value2(value2) {}
 
 std::string PredicateNode::description() const {
+  std::string left_operand_name = get_verbose_column_name(_column_id);
+  std::string right_a_operand_name;
+
+  if (_value.type() == typeid(ColumnID)) {
+    right_a_operand_name = get_verbose_column_name(boost::get<ColumnID>(_value));
+  } else {
+    right_a_operand_name = boost::lexical_cast<std::string>(_value);
+  }
+
   std::ostringstream desc;
 
-  desc << "Predicate: Col #" << _column_id << " " << scan_type_to_string.left.at(_scan_type);
-  desc << " '" << _value << "'";
+  desc << "[Predicate] " << left_operand_name << " " << scan_type_to_string.left.at(_scan_type);
+  desc << " " << right_a_operand_name << "";
   if (_value2) {
-    desc << " '" << (*_value2) << "";
+    desc << " '" << *_value2 << "'";
   }
 
   return desc.str();

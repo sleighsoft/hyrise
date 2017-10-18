@@ -5,6 +5,7 @@
 #include <vector>
 
 #include "optimizer/abstract_syntax_tree/abstract_ast_node.hpp"
+#include "types.hpp"
 
 namespace opossum {
 
@@ -26,6 +27,7 @@ class MockTableNode : public AbstractASTNode {
       const NamedColumnReference& named_column_reference) const override;
 
   std::string description() const override;
+  std::string get_verbose_column_name(ColumnID column_id) const override;
 
  protected:
   void _on_child_changed() override;

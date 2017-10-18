@@ -191,8 +191,27 @@ class AbstractASTNode : public std::enable_shared_from_this<AbstractASTNode> {
    */
   void set_alias(const optional<std::string>& table_alias);
 
+  // @{
+  /**
+   * Functions for debugging puposes.
+   */
+
+  /**
+   * Prints this node and all its descendants formatted as a tree
+   */
   void print(const uint32_t level = 0, std::ostream& out = std::cout) const;
+
+  /**
+   * Returns a string describing this node, but nothing about its children.
+   */
   virtual std::string description() const = 0;
+
+  /**
+   * Generate a name for a column that contains all aliases it went through as well as the name of the table that it
+   * originally came from, if any
+   */
+  virtual std::string get_verbose_column_name(ColumnID column_id) const;
+  // @}
 
  protected:
   virtual void _on_child_changed() {}

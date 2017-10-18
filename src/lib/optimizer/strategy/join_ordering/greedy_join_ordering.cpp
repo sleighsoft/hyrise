@@ -104,9 +104,16 @@ std::shared_ptr<AbstractASTNode> GreedyJoinOrdering::run() {
      */
     for (const auto& edge_idx : predicate_edge_indices) {
       const auto& predicate_edge = _input_graph->edges()[edge_idx];
-      const auto predicate_column_ids = get_edge_column_ids(edge_idx, join_vertex_ids.second);
-      auto new_root = std::make_shared<PredicateNode>(predicate_column_ids.first, predicate_edge.predicate.scan_type,
-                                                      predicate_column_ids.second);
+
+      const auto left_column_id =
+        _left_column_id_of_vertex[predicate_edge.vertex_indices.first] + predicate_edge.predicate.column_ids.first;
+      const auto right_column_id =
+        _left_column_id_of_vertex[predicate_edge.vertex_indices.second] + predicate_edge.predicate.column_ids.second;
+
+      auto new_root = std::make_shared<PredicateNode>(
+        ColumnID{static_cast<ColumnID::base_type>(left_column_id)},
+        predicate_edge.predicate.scan_type,
+        ColumnID{static_cast<ColumnID::base_type>(right_column_id)});
       new_root->set_left_child(current_root);
       current_root = new_root;
     }
