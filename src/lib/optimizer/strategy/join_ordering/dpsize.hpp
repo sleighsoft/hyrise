@@ -1,10 +1,10 @@
 #pragma once
 
 #include <bitset>
+#include <optional>
 #include <memory>
 #include <vector>
 
-#include "common.hpp"
 #include "join_graph.hpp"
 #include "join_ordering_types.hpp"
 #include "types.hpp"
@@ -24,7 +24,7 @@ struct JoinTableNode {
 struct JoinPlanNode {
   std::shared_ptr<TableStatistics> statistics;
 
-  optional<size_t> table_idx;
+  std::optional<size_t> table_idx;
 
   JoinPredicate join_predicate;
   std::shared_ptr<JoinPlanNode> left_child;
