@@ -10,6 +10,14 @@
 
 namespace opossum {
 
+
+JoinEdge::JoinEdge(const std::pair<JoinVertexId, JoinVertexId>& vertex_indices,
+         JoinMode mode, const std::pair<ColumnID, ColumnID> & column_ids, ScanType scan_type):
+  
+{
+
+}
+
 std::shared_ptr<JoinGraph> JoinGraph::build_join_graph(const std::shared_ptr<AbstractASTNode>& root) {
   JoinGraph::Vertices vertices;
   JoinGraph::Edges edges;

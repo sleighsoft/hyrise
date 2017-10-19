@@ -69,7 +69,7 @@ class JoinReorderingBaseTest : public StrategyBaseTest {
       return std::make_shared<JoinGraph>(std::move(vertices), std::move(edges));
     };
 
-    _table_node_a = make_mock_table("a", 10, 80, 70);
+    _table_node_a = make_mock_table("a", 10, 11, 3);
     _table_node_b = make_mock_table("b", 10, 60, 60);
     _table_node_c = make_mock_table("c", 50, 100, 15);
     _table_node_d = make_mock_table("d", 53, 57, 10);
@@ -77,6 +77,12 @@ class JoinReorderingBaseTest : public StrategyBaseTest {
 
     _join_graph_cde_chain = make_chain_join_graph({_table_node_c, _table_node_d, _table_node_e});
     _join_graph_bcd_clique = make_clique_join_graph({_table_node_b, _table_node_c, _table_node_d});
+
+    /**
+     * Build the ABCDE graph, which is a chain from A to E with B also being connected to E and D
+     */
+    JoinGraph::Vertices vertices = {_table_node_a, _table_node_b, _table_node_c, _table_node_d, _table_node_e};
+    JoinGraph::Edges edges = {edge};
   }
 
  protected:
@@ -87,5 +93,6 @@ class JoinReorderingBaseTest : public StrategyBaseTest {
   std::shared_ptr<MockTableNode> _table_node_e;
   std::shared_ptr<JoinGraph> _join_graph_cde_chain;
   std::shared_ptr<JoinGraph> _join_graph_bcd_clique;
+  std::shared_ptr<JoinGraph> _join_graph_abcde;
 };
 }
