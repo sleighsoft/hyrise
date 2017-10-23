@@ -31,13 +31,15 @@ class ASTUtilsTest : public ::testing::Test {
     _predicate_a = std::make_shared<PredicateNode>(ColumnID{0}, ScanType::OpEquals, 5);
     _predicate_a->set_left_child(_table_a);
 
-    _join_a = std::make_shared<JoinNode>(JoinMode::Inner, std::make_pair(ColumnID{1}, ColumnID{2}), ScanType::OpGreaterThanEquals);
+    _join_a = std::make_shared<JoinNode>(JoinMode::Inner, std::make_pair(ColumnID{1}, ColumnID{2}),
+                                         ScanType::OpGreaterThanEquals);
     _join_a->set_children(_table_b, _predicate_a);
 
     _predicate_b = std::make_shared<PredicateNode>(ColumnID{3}, ScanType::OpGreaterThan, ColumnID{1});
     _predicate_b->set_left_child(_join_a);
 
-    _join_b = std::make_shared<JoinNode>(JoinMode::Inner, std::make_pair(ColumnID{6}, ColumnID{4}), ScanType::OpGreaterThanEquals);
+    _join_b = std::make_shared<JoinNode>(JoinMode::Inner, std::make_pair(ColumnID{6}, ColumnID{4}),
+                                         ScanType::OpGreaterThanEquals);
     _join_b->set_children(_table_c, _predicate_b);
   }
 
@@ -71,17 +73,24 @@ TEST_F(ASTUtilsTest, GetFirstColumnIDOfDescendant) {
 }
 
 TEST_F(ASTUtilsTest, ContainsJoinEdge) {
-  EXPECT_TRUE(ast_contains_join_edge(_join_a, _table_b, _table_a, ColumnID{1}, ColumnID{2}, ScanType::OpGreaterThanEquals));
-  EXPECT_TRUE(ast_contains_join_edge(_join_a, _table_a, _table_b, ColumnID{2}, ColumnID{1}, ScanType::OpLessThanEquals));
-  EXPECT_TRUE(ast_contains_join_edge(_predicate_b, _table_a, _table_b, ColumnID{2}, ColumnID{1}, ScanType::OpLessThanEquals));
-  EXPECT_TRUE(ast_contains_join_edge(_join_b, _table_a, _table_b, ColumnID{2}, ColumnID{1}, ScanType::OpLessThanEquals));
-  EXPECT_FALSE(ast_contains_join_edge(_join_a, _table_a, _table_b, ColumnID{2}, ColumnID{1}, ScanType::OpGreaterThanEquals));
-  EXPECT_FALSE(ast_contains_join_edge(_join_a, _table_a, _table_b, ColumnID{2}, ColumnID{2}, ScanType::OpLessThanEquals));
+  EXPECT_TRUE(
+      ast_contains_join_edge(_join_a, _table_b, _table_a, ColumnID{1}, ColumnID{2}, ScanType::OpGreaterThanEquals));
+  EXPECT_TRUE(
+      ast_contains_join_edge(_join_a, _table_a, _table_b, ColumnID{2}, ColumnID{1}, ScanType::OpLessThanEquals));
+  EXPECT_TRUE(
+      ast_contains_join_edge(_predicate_b, _table_a, _table_b, ColumnID{2}, ColumnID{1}, ScanType::OpLessThanEquals));
+  EXPECT_TRUE(
+      ast_contains_join_edge(_join_b, _table_a, _table_b, ColumnID{2}, ColumnID{1}, ScanType::OpLessThanEquals));
+  EXPECT_FALSE(
+      ast_contains_join_edge(_join_a, _table_a, _table_b, ColumnID{2}, ColumnID{1}, ScanType::OpGreaterThanEquals));
+  EXPECT_FALSE(
+      ast_contains_join_edge(_join_a, _table_a, _table_b, ColumnID{2}, ColumnID{2}, ScanType::OpLessThanEquals));
 
-  EXPECT_TRUE(ast_contains_join_edge(_join_b, _table_a, _table_c, ColumnID{2}, ColumnID{6}, ScanType::OpLessThanEquals));
-  EXPECT_TRUE(ast_contains_join_edge(_join_b, _table_c, _table_a, ColumnID{6}, ColumnID{2}, ScanType::OpGreaterThanEquals));
+  EXPECT_TRUE(
+      ast_contains_join_edge(_join_b, _table_a, _table_c, ColumnID{2}, ColumnID{6}, ScanType::OpLessThanEquals));
+  EXPECT_TRUE(
+      ast_contains_join_edge(_join_b, _table_c, _table_a, ColumnID{6}, ColumnID{2}, ScanType::OpGreaterThanEquals));
 
   EXPECT_FALSE(ast_contains_join_edge(_join_b, _table_c, _table_a, ColumnID{9}, ColumnID{5}, ScanType::OpEquals));
 }
-
 }

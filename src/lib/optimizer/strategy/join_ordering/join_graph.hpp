@@ -21,8 +21,8 @@ struct JoinPredicate {
 };
 
 struct JoinEdge {
-  JoinEdge(const std::pair<JoinVertexId, JoinVertexId>& vertex_indices,
-           JoinMode mode, const std::pair<ColumnID, ColumnID> & column_ids, ScanType scan_type);
+  JoinEdge(const std::pair<JoinVertexId, JoinVertexId>& vertex_indices, JoinMode mode,
+           const std::pair<ColumnID, ColumnID>& column_ids, ScanType scan_type);
 
   JoinPredicate predicate;
   std::pair<JoinVertexId, JoinVertexId> vertex_indices{INVALID_JOIN_VERTEX_ID, INVALID_JOIN_VERTEX_ID};

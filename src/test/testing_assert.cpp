@@ -2,8 +2,8 @@
 
 #include <algorithm>
 #include <memory>
-#include <utility>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include "all_type_variant.hpp"
@@ -160,7 +160,7 @@ namespace opossum {
   if (predicate_node == nullptr) return ::testing::AssertionFailure() << "Node is no Predicate";
 
   if (column_id == predicate_node->column_id() && scan_type == predicate_node->scan_type() &&
-    value == predicate_node->value() && value2 == predicate_node->value2()) {
+      value == predicate_node->value() && value2 == predicate_node->value2()) {
     return ::testing::AssertionSuccess();
   }
 
@@ -171,7 +171,7 @@ namespace opossum {
   const auto flipped_scan_type = flip_scan_type(scan_type);
 
   if (column_id == boost::get<ColumnID>(predicate_node->value()) && flipped_scan_type == predicate_node->scan_type() &&
-    boost::get<ColumnID>(value) == predicate_node->column_id()) {
+      boost::get<ColumnID>(value) == predicate_node->column_id()) {
     return ::testing::AssertionSuccess();
   }
 
@@ -207,17 +207,15 @@ void ASSERT_INNER_JOIN_NODE(const std::shared_ptr<AbstractASTNode>& node, ScanTy
 
 void ASSERT_CROSS_JOIN_NODE(const std::shared_ptr<AbstractASTNode>& node) {}
 
-void ASSERT_PREDICATE_NODE(const std::shared_ptr<AbstractASTNode>& node, ColumnID column_id,
-                           ScanType scan_type, const AllParameterVariant& value,
-                           const std::optional<AllTypeVariant>& value2) {
+void ASSERT_PREDICATE_NODE(const std::shared_ptr<AbstractASTNode>& node, ColumnID column_id, ScanType scan_type,
+                           const AllParameterVariant& value, const std::optional<AllTypeVariant>& value2) {
   ASSERT_TRUE(check_predicate_node(node, column_id, scan_type, value, value2));
 }
 
 void EXPECT_CONTAINS_JOIN_EDGE(const std::shared_ptr<AbstractASTNode>& node,
                                const std::shared_ptr<AbstractASTNode>& leaf_a,
-                               const std::shared_ptr<AbstractASTNode>& leaf_b,
-                               ColumnID column_id_a, ColumnID column_id_b,
-                               ScanType scan_type) {
+                               const std::shared_ptr<AbstractASTNode>& leaf_b, ColumnID column_id_a,
+                               ColumnID column_id_b, ScanType scan_type) {
   EXPECT_TRUE(ast_contains_join_edge(node, leaf_a, leaf_b, column_id_a, column_id_b, scan_type));
 }
 

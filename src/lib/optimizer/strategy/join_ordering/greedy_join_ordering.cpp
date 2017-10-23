@@ -65,7 +65,7 @@ std::shared_ptr<AbstractASTNode> GreedyJoinOrdering::run() {
      * Find the next vertex to join and store it in `next_join_vertex_idx`
      */
     auto min_join_cost = std::numeric_limits<float>::max();
-    auto next_join_edge_idx = 0; // TODO(moritz) symbolic constant
+    auto next_join_edge_idx = 0;  // TODO(moritz) symbolic constant
 
     std::cout << "  Costing neighbourhood: " << std::endl;
     for (auto iter = neighbourhood_edge_indices.begin(); iter != neighbourhood_edge_indices.end(); ++iter) {
@@ -93,7 +93,8 @@ std::shared_ptr<AbstractASTNode> GreedyJoinOrdering::run() {
     /**
      * Extend the join plan with a new join node
      */
-    _left_column_id_of_vertex[join_vertex_ids.second] = ColumnID{static_cast<ColumnID::base_type>(current_root->output_col_count())};
+    _left_column_id_of_vertex[join_vertex_ids.second] =
+        ColumnID{static_cast<ColumnID::base_type>(current_root->output_col_count())};
     auto new_root = std::make_shared<JoinNode>(JoinMode::Inner, join_column_ids, join_edge.predicate.scan_type);
     new_root->set_left_child(current_root);
     new_root->set_right_child(_input_graph->vertices()[join_vertex_ids.second]);
@@ -106,14 +107,13 @@ std::shared_ptr<AbstractASTNode> GreedyJoinOrdering::run() {
       const auto& predicate_edge = _input_graph->edges()[edge_idx];
 
       const auto left_column_id =
-        _left_column_id_of_vertex[predicate_edge.vertex_indices.first] + predicate_edge.predicate.column_ids.first;
+          _left_column_id_of_vertex[predicate_edge.vertex_indices.first] + predicate_edge.predicate.column_ids.first;
       const auto right_column_id =
-        _left_column_id_of_vertex[predicate_edge.vertex_indices.second] + predicate_edge.predicate.column_ids.second;
+          _left_column_id_of_vertex[predicate_edge.vertex_indices.second] + predicate_edge.predicate.column_ids.second;
 
-      auto new_root = std::make_shared<PredicateNode>(
-        ColumnID{static_cast<ColumnID::base_type>(left_column_id)},
-        predicate_edge.predicate.scan_type,
-        ColumnID{static_cast<ColumnID::base_type>(right_column_id)});
+      auto new_root = std::make_shared<PredicateNode>(ColumnID{static_cast<ColumnID::base_type>(left_column_id)},
+                                                      predicate_edge.predicate.scan_type,
+                                                      ColumnID{static_cast<ColumnID::base_type>(right_column_id)});
       new_root->set_left_child(current_root);
       current_root = new_root;
     }
@@ -161,7 +161,8 @@ std::vector<size_t> GreedyJoinOrdering::update_neighbourhood(std::set<size_t>& n
 
   auto new_vertex_neighbourhood = extract_vertex_neighbourhood(vertex_ids.second);
   std::cout << "New neighbourhood edges of vertex " << vertex_ids.second << std::endl;
-  for (auto e : new_vertex_neighbourhood) std::cout << "  " << e << ", "; std::cout << std::endl;
+  for (auto e : new_vertex_neighbourhood) std::cout << "  " << e << ", ";
+  std::cout << std::endl;
   neighbourhood_edges.insert(new_vertex_neighbourhood.begin(), new_vertex_neighbourhood.end());
 
   return predicate_edge_ids;
@@ -181,7 +182,6 @@ float GreedyJoinOrdering::cost_join(const std::shared_ptr<AbstractASTNode>& left
 
 std::pair<ColumnID, ColumnID> GreedyJoinOrdering::get_edge_column_ids(size_t edge_idx,
                                                                       JoinVertexId right_vertex_id) const {
-
   /**
    * Returns the ColumnIDs required for joining the vertex right_vertex_id to the join plan using the edge edge_idx
    * The .first member of the returned pair is the ColumnID on the left side of the join, the .second member the ColumnID
@@ -191,12 +191,12 @@ std::pair<ColumnID, ColumnID> GreedyJoinOrdering::get_edge_column_ids(size_t edg
   const auto& edge = _input_graph->edges()[edge_idx];
   if (edge.vertex_indices.second == right_vertex_id) {
     return std::make_pair(
-      ColumnID{_left_column_id_of_vertex[edge.vertex_indices.first] + edge.predicate.column_ids.first},
-      edge.predicate.column_ids.second);
+        ColumnID{_left_column_id_of_vertex[edge.vertex_indices.first] + edge.predicate.column_ids.first},
+        edge.predicate.column_ids.second);
   }
   return std::make_pair(
-    ColumnID{_left_column_id_of_vertex[edge.vertex_indices.second] + edge.predicate.column_ids.second},
-    edge.predicate.column_ids.first);
+      ColumnID{_left_column_id_of_vertex[edge.vertex_indices.second] + edge.predicate.column_ids.second},
+      edge.predicate.column_ids.first);
 };
 
 std::set<size_t> GreedyJoinOrdering::extract_vertex_neighbourhood(JoinVertexId vertex_idx) {

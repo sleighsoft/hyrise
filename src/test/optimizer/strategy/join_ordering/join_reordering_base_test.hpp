@@ -22,7 +22,7 @@ class JoinOrderingTableStatistics : public TableStatistics {
 class JoinReorderingBaseTest : public StrategyBaseTest {
  public:
   JoinReorderingBaseTest() {
-    const auto make_mock_table = [](const std::string & name, int32_t min, int32_t max, float row_count) {
+    const auto make_mock_table = [](const std::string& name, int32_t min, int32_t max, float row_count) {
       return std::make_shared<MockTableNode>(std::make_shared<JoinOrderingTableStatistics>(min, max, row_count), name);
     };
 
@@ -31,12 +31,7 @@ class JoinReorderingBaseTest : public StrategyBaseTest {
 
       for (size_t vertex_idx_a = 0; vertex_idx_a < vertices.size(); ++vertex_idx_a) {
         for (size_t vertex_idx_b = vertex_idx_a + 1; vertex_idx_b < vertices.size(); ++vertex_idx_b) {
-          JoinEdge edge(
-            {vertex_idx_a, vertex_idx_b},
-            JoinMode::Inner,
-            {ColumnID{0}, ColumnID{0}},
-            ScanType::OpEquals
-          );
+          JoinEdge edge({vertex_idx_a, vertex_idx_b}, JoinMode::Inner, {ColumnID{0}, ColumnID{0}}, ScanType::OpEquals);
 
           edges.emplace_back(edge);
         }
@@ -50,12 +45,7 @@ class JoinReorderingBaseTest : public StrategyBaseTest {
       for (size_t vertex_idx_a = 1; vertex_idx_a < vertices.size(); ++vertex_idx_a) {
         const auto vertex_idx_b = vertex_idx_a - 1;
 
-        JoinEdge edge(
-          {vertex_idx_a, vertex_idx_b},
-          JoinMode::Inner,
-          {ColumnID{0}, ColumnID{0}},
-          ScanType::OpEquals
-        );
+        JoinEdge edge({vertex_idx_a, vertex_idx_b}, JoinMode::Inner, {ColumnID{0}, ColumnID{0}}, ScanType::OpEquals);
 
         edges.emplace_back(edge);
       }
@@ -81,10 +71,8 @@ class JoinReorderingBaseTest : public StrategyBaseTest {
      *
      */
     JoinGraph::Vertices vertices_abcde = {_table_node_a, _table_node_b, _table_node_c, _table_node_d, _table_node_e};
-    JoinGraph::Edges edges_abcde = {
-      _create_equi_edge(0, 1), _create_equi_edge(1, 2), _create_equi_edge(2, 3), _create_equi_edge(3, 4),
-      _create_equi_edge(1, 4), _create_equi_edge(1, 3)
-    };
+    JoinGraph::Edges edges_abcde = {_create_equi_edge(0, 1), _create_equi_edge(1, 2), _create_equi_edge(2, 3),
+                                    _create_equi_edge(3, 4), _create_equi_edge(1, 4), _create_equi_edge(1, 3)};
     _join_graph_abcde = std::make_shared<JoinGraph>(std::move(vertices_abcde), std::move(edges_abcde));
   }
 

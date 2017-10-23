@@ -33,8 +33,8 @@ void ASSERT_INNER_JOIN_NODE(const std::shared_ptr<AbstractASTNode>& node, ScanTy
 
 void ASSERT_CROSS_JOIN_NODE(const std::shared_ptr<AbstractASTNode>& node);
 
-void ASSERT_PREDICATE_NODE(const std::shared_ptr<AbstractASTNode>& node, ColumnID column_id,
-                           ScanType scan_type, const AllParameterVariant& value,
+void ASSERT_PREDICATE_NODE(const std::shared_ptr<AbstractASTNode>& node, ColumnID column_id, ScanType scan_type,
+                           const AllParameterVariant& value,
                            const std::optional<AllTypeVariant>& value2 = std::nullopt);
 
 /**
@@ -42,7 +42,6 @@ void ASSERT_PREDICATE_NODE(const std::shared_ptr<AbstractASTNode>& node, ColumnI
  */
 void EXPECT_CONTAINS_JOIN_EDGE(const std::shared_ptr<AbstractASTNode>& node,
                                const std::shared_ptr<AbstractASTNode>& leaf_a,
-                               const std::shared_ptr<AbstractASTNode>& leaf_b,
-                               ColumnID column_id_a, ColumnID column_id_b,
-                               ScanType scan_type);
+                               const std::shared_ptr<AbstractASTNode>& leaf_b, ColumnID column_id_a,
+                               ColumnID column_id_b, ScanType scan_type);
 }  // namespace opossum

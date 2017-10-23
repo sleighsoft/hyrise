@@ -1,8 +1,8 @@
 #pragma once
 
 #include <bitset>
-#include <optional>
 #include <memory>
+#include <optional>
 #include <vector>
 
 #include "join_graph.hpp"
