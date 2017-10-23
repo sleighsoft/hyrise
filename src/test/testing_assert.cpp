@@ -8,6 +8,7 @@
 
 #include "all_type_variant.hpp"
 #include "optimizer/abstract_syntax_tree/abstract_ast_node.hpp"
+#include "optimizer/abstract_syntax_tree/ast_utils.hpp"
 #include "optimizer/abstract_syntax_tree/join_node.hpp"
 #include "optimizer/abstract_syntax_tree/predicate_node.hpp"
 #include "storage/table.hpp"
@@ -53,6 +54,7 @@ void _print_matrix(const Matrix& m) {
   }
   std::cout << "-------------" << std::endl;
 }
+
 }  // namespace
 
 namespace opossum {
@@ -209,6 +211,14 @@ void ASSERT_PREDICATE_NODE(const std::shared_ptr<AbstractASTNode>& node, ColumnI
                            ScanType scan_type, const AllParameterVariant& value,
                            const std::optional<AllTypeVariant>& value2) {
   ASSERT_TRUE(check_predicate_node(node, column_id, scan_type, value, value2));
+}
+
+void EXPECT_CONTAINS_JOIN_EDGE(const std::shared_ptr<AbstractASTNode>& node,
+                               const std::shared_ptr<AbstractASTNode>& leaf_a,
+                               const std::shared_ptr<AbstractASTNode>& leaf_b,
+                               ColumnID column_id_a, ColumnID column_id_b,
+                               ScanType scan_type) {
+  EXPECT_TRUE(ast_contains_join_edge(node, leaf_a, leaf_b, column_id_a, column_id_b, scan_type));
 }
 
 }  // namespace opossum

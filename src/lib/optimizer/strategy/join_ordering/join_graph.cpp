@@ -13,7 +13,7 @@ namespace opossum {
 
 JoinEdge::JoinEdge(const std::pair<JoinVertexId, JoinVertexId>& vertex_indices,
          JoinMode mode, const std::pair<ColumnID, ColumnID> & column_ids, ScanType scan_type):
-  
+  predicate{mode, column_ids, scan_type}, vertex_indices(vertex_indices)
 {
 
 }
@@ -90,10 +90,6 @@ void JoinGraph::_traverse_ast_for_join_graph(const std::shared_ptr<AbstractASTNo
   /**
    * Build the JoinEdge corresponding to this node
    */
-  JoinEdge edge;
-  edge.predicate.scan_type = *join_node->scan_type();
-  edge.predicate.mode = join_node->join_mode();
-
   auto left_column_id = join_node->join_column_ids()->first;
   auto right_column_id = join_node->join_column_ids()->second;
 
@@ -113,10 +109,10 @@ void JoinGraph::_traverse_ast_for_join_graph(const std::shared_ptr<AbstractASTNo
   const auto find_left_result = find_column(left_column_id, left_vertex_offset, right_vertex_offset);
   const auto find_right_result = find_column(right_column_id, right_vertex_offset, o_vertices.size());
 
-  edge.vertex_indices.first = find_left_result.first;
-  edge.predicate.column_ids.first = find_left_result.second;
-  edge.vertex_indices.second = find_right_result.first;
-  edge.predicate.column_ids.second = find_right_result.second;
+  JoinEdge edge({find_left_result.first, find_right_result.first},
+                join_node->join_mode(),
+                {find_left_result.second, find_right_result.second},
+                *join_node->scan_type());
 
   o_edges.emplace_back(edge);
 }

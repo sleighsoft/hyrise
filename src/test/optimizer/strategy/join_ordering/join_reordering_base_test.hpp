@@ -31,15 +31,12 @@ class JoinReorderingBaseTest : public StrategyBaseTest {
 
       for (size_t vertex_idx_a = 0; vertex_idx_a < vertices.size(); ++vertex_idx_a) {
         for (size_t vertex_idx_b = vertex_idx_a + 1; vertex_idx_b < vertices.size(); ++vertex_idx_b) {
-          JoinEdge edge;
-          edge.vertex_indices = {vertex_idx_a, vertex_idx_b};
-
-          JoinPredicate predicate;
-          predicate.mode = JoinMode::Inner;
-          predicate.column_ids = {ColumnID{0}, ColumnID{0}};
-          predicate.scan_type = ScanType::OpEquals;
-
-          edge.predicate = predicate;
+          JoinEdge edge(
+            {vertex_idx_a, vertex_idx_b},
+            JoinMode::Inner,
+            {ColumnID{0}, ColumnID{0}},
+            ScanType::OpEquals
+          );
 
           edges.emplace_back(edge);
         }
@@ -53,15 +50,12 @@ class JoinReorderingBaseTest : public StrategyBaseTest {
       for (size_t vertex_idx_a = 1; vertex_idx_a < vertices.size(); ++vertex_idx_a) {
         const auto vertex_idx_b = vertex_idx_a - 1;
 
-        JoinEdge edge;
-        edge.vertex_indices = {vertex_idx_a, vertex_idx_b};
-
-        JoinPredicate predicate;
-        predicate.mode = JoinMode::Inner;
-        predicate.column_ids = {ColumnID{0}, ColumnID{0}};
-        predicate.scan_type = ScanType::OpEquals;
-
-        edge.predicate = predicate;
+        JoinEdge edge(
+          {vertex_idx_a, vertex_idx_b},
+          JoinMode::Inner,
+          {ColumnID{0}, ColumnID{0}},
+          ScanType::OpEquals
+        );
 
         edges.emplace_back(edge);
       }
@@ -69,7 +63,7 @@ class JoinReorderingBaseTest : public StrategyBaseTest {
       return std::make_shared<JoinGraph>(std::move(vertices), std::move(edges));
     };
 
-    _table_node_a = make_mock_table("a", 10, 11, 3);
+    _table_node_a = make_mock_table("a", 10, 80, 3);
     _table_node_b = make_mock_table("b", 10, 60, 60);
     _table_node_c = make_mock_table("c", 50, 100, 15);
     _table_node_d = make_mock_table("d", 53, 57, 10);
@@ -80,9 +74,18 @@ class JoinReorderingBaseTest : public StrategyBaseTest {
 
     /**
      * Build the ABCDE graph, which is a chain from A to E with B also being connected to E and D
+     *
+     * A___B___C___D___E
+     *     |_______|   |
+     *     |___________|
+     *
      */
-    JoinGraph::Vertices vertices = {_table_node_a, _table_node_b, _table_node_c, _table_node_d, _table_node_e};
-    JoinGraph::Edges edges = {edge};
+    JoinGraph::Vertices vertices_abcde = {_table_node_a, _table_node_b, _table_node_c, _table_node_d, _table_node_e};
+    JoinGraph::Edges edges_abcde = {
+      _create_equi_edge(0, 1), _create_equi_edge(1, 2), _create_equi_edge(2, 3), _create_equi_edge(3, 4),
+      _create_equi_edge(1, 4), _create_equi_edge(1, 3)
+    };
+    _join_graph_abcde = std::make_shared<JoinGraph>(std::move(vertices_abcde), std::move(edges_abcde));
   }
 
  protected:
@@ -94,5 +97,9 @@ class JoinReorderingBaseTest : public StrategyBaseTest {
   std::shared_ptr<JoinGraph> _join_graph_cde_chain;
   std::shared_ptr<JoinGraph> _join_graph_bcd_clique;
   std::shared_ptr<JoinGraph> _join_graph_abcde;
+
+  JoinEdge _create_equi_edge(JoinVertexId vertex_id_a, JoinVertexId vertex_id_b) {
+    return JoinEdge({vertex_id_a, vertex_id_b}, JoinMode::Inner, {ColumnID{0}, ColumnID{0}}, ScanType::OpEquals);
+  }
 };
 }

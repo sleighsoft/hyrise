@@ -57,7 +57,7 @@ TEST_F(GreedyJoinOrderingTest, BasicCliqueGraph) {
   // If Predicate is C.a == B.a
   if (check_predicate_node(plan, ColumnID{1}, ScanType::OpEquals, ColumnID{2})) {
     // ...then join must be D.a == B.a
-    ASSERT_INNER_JOIN_NODE(plan->left_child(), ScanTyxpe::OpEquals, ColumnID{0}, ColumnID{0});
+    ASSERT_INNER_JOIN_NODE(plan->left_child(), ScanType::OpEquals, ColumnID{0}, ColumnID{0});
   } else {
     // Predicate must be D.a == B.a
     ASSERT_PREDICATE_NODE(plan, ColumnID{0}, ScanType::OpEquals, ColumnID{2});
@@ -71,5 +71,56 @@ TEST_F(GreedyJoinOrderingTest, BasicCliqueGraph) {
   ASSERT_EQ(plan->left_child()->right_child(), _table_node_b);
   ASSERT_EQ(plan->left_child()->left_child()->left_child(), _table_node_d);
   ASSERT_EQ(plan->left_child()->left_child()->right_child(), _table_node_c);
+}
+
+TEST_F(GreedyJoinOrderingTest, MediumSizeGraph) {
+  /**
+   * Expected Result:
+   *
+   *                    Predicate
+   *                        |
+   *                     _Join_
+   *                    /      \
+   *               Predicate    E
+   *                  |
+   *               _Join_
+   *              /      \
+   *         _Join_       C
+   *        /      \
+   *   _Join_       D
+   *  /      \
+   * A        B
+   */
+
+  auto plan = GreedyJoinOrdering(_join_graph_abcde).run();
+
+  /**
+   * Assert Joins/Predicates
+   */
+  ASSERT_EQ(plan->type(), ASTNodeType::Predicate);
+  ASSERT_EQ(plan->left_child()->type(), ASTNodeType::Join);
+  ASSERT_EQ(plan->left_child()->left_child()->type(), ASTNodeType::Predicate);
+  ASSERT_EQ(plan->left_child()->left_child()->left_child()->type(), ASTNodeType::Join);
+  ASSERT_EQ(plan->left_child()->left_child()->left_child()->left_child()->type(), ASTNodeType::Join);
+  ASSERT_EQ(plan->left_child()->left_child()->left_child()->left_child()->left_child()->type(), ASTNodeType::Join);
+
+  /**
+   * Assert Leafs
+   */
+  ASSERT_EQ(plan->left_child()->right_child(), _table_node_e);
+  ASSERT_EQ(plan->left_child()->left_child()->left_child()->right_child(), _table_node_c);
+  ASSERT_EQ(plan->left_child()->left_child()->left_child()->left_child()->right_child(), _table_node_d);
+  ASSERT_EQ(plan->left_child()->left_child()->left_child()->left_child()->left_child()->left_child(), _table_node_a);
+  ASSERT_EQ(plan->left_child()->left_child()->left_child()->left_child()->left_child()->right_child(), _table_node_b);
+
+  /**
+   * Assert edges
+   */
+  EXPECT_CONTAINS_JOIN_EDGE(plan, _table_node_a, _table_node_b, ColumnID{0}, ColumnID{0}, ScanType::OpEquals);
+  EXPECT_CONTAINS_JOIN_EDGE(plan, _table_node_b, _table_node_c, ColumnID{0}, ColumnID{0}, ScanType::OpEquals);
+  EXPECT_CONTAINS_JOIN_EDGE(plan, _table_node_c, _table_node_d, ColumnID{0}, ColumnID{0}, ScanType::OpEquals);
+  EXPECT_CONTAINS_JOIN_EDGE(plan, _table_node_d, _table_node_e, ColumnID{0}, ColumnID{0}, ScanType::OpEquals);
+  EXPECT_CONTAINS_JOIN_EDGE(plan, _table_node_b, _table_node_d, ColumnID{0}, ColumnID{0}, ScanType::OpEquals);
+  EXPECT_CONTAINS_JOIN_EDGE(plan, _table_node_b, _table_node_e, ColumnID{0}, ColumnID{0}, ScanType::OpEquals);
 }
 }
