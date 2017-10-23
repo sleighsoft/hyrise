@@ -17,5 +17,5 @@ typename std::enable_if<std::is_integral<T>::value, ColumnID>::type make_column_
   DebugAssert(value >= 0 && value <= std::numeric_limits<ColumnID::base_type>::max(),
               "Value out of range for ColumnID");
   return ColumnID{static_cast<ColumnID::base_type>(value)};
-};
+}
 }

@@ -9,6 +9,7 @@
 #include "optimizer/abstract_syntax_tree/predicate_node.hpp"
 #include "optimizer/table_statistics.hpp"
 #include "utils/assert.hpp"
+#include "utils/type_utils.hpp"
 
 namespace opossum {
 
@@ -191,13 +192,13 @@ std::pair<ColumnID, ColumnID> GreedyJoinOrdering::get_edge_column_ids(size_t edg
   const auto& edge = _input_graph->edges()[edge_idx];
   if (edge.vertex_indices.second == right_vertex_id) {
     return std::make_pair(
-        ColumnID{_left_column_id_of_vertex[edge.vertex_indices.first] + edge.predicate.column_ids.first},
+        make_column_id(_left_column_id_of_vertex[edge.vertex_indices.first] + edge.predicate.column_ids.first),
         edge.predicate.column_ids.second);
   }
   return std::make_pair(
-      ColumnID{_left_column_id_of_vertex[edge.vertex_indices.second] + edge.predicate.column_ids.second},
+      make_column_id(_left_column_id_of_vertex[edge.vertex_indices.second] + edge.predicate.column_ids.second),
       edge.predicate.column_ids.first);
-};
+}
 
 std::set<size_t> GreedyJoinOrdering::extract_vertex_neighbourhood(JoinVertexId vertex_idx) {
   /**
@@ -231,5 +232,5 @@ std::pair<JoinVertexId, JoinVertexId> GreedyJoinOrdering::order_edge_vertices(co
   }
 
   return std::make_pair(new_vertex_idx, contained_vertex_idx);
-};
+}
 }

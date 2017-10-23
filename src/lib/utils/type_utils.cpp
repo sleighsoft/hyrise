@@ -26,5 +26,8 @@ ScanType flip_scan_type(ScanType scan_type) {
     case ScanType::OpLike:
       return ScanType::OpLike;  // Shouldn't be reached
   }
+
+  Fail("Shouldn't be reached");
+  return ScanType::OpEquals; // stupid clang thinks this might get reached.
 }
 }

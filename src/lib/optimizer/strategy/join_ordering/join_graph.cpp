@@ -17,17 +17,20 @@ JoinEdge::JoinEdge(const std::pair<JoinVertexId, JoinVertexId>& vertex_indices, 
 std::shared_ptr<JoinGraph> JoinGraph::build_join_graph(const std::shared_ptr<AbstractASTNode>& root) {
   JoinGraph::Vertices vertices;
   JoinGraph::Edges edges;
+  JoinGraph::EdgeNodes edge_nodes;
 
-  _traverse_ast_for_join_graph(root, vertices, edges);
+  _traverse_ast_for_join_graph(root, vertices, edges, edge_nodes);
 
   return std::make_shared<JoinGraph>(std::move(vertices), std::move(edges));
 }
 
-JoinGraph::JoinGraph(Vertices&& vertices, Edges&& edges) : _vertices(std::move(vertices)), _edges(std::move(edges)) {}
+JoinGraph::JoinGraph(Vertices&& vertices, Edges&& edges, EdgeNodes&& edge_nodes) : _vertices(std::move(vertices)), _edges(std::move(edges)), _edge_nodes(std::move(edge_nodes)) {}
 
 const JoinGraph::Vertices& JoinGraph::vertices() const { return _vertices; }
 
 const JoinGraph::Edges& JoinGraph::edges() const { return _edges; }
+
+const JoinGraph::EdgeNodes& JoinGraph::edge_nodes() const { return _edge_nodes; }
 
 void JoinGraph::print(std::ostream& out) const {
   out << "==== JoinGraph ====" << std::endl;
@@ -47,8 +50,10 @@ void JoinGraph::print(std::ostream& out) const {
 }
 
 void JoinGraph::_traverse_ast_for_join_graph(const std::shared_ptr<AbstractASTNode>& node,
-                                             std::vector<std::shared_ptr<AbstractASTNode>>& o_vertices,
-                                             std::vector<JoinEdge>& o_edges, ColumnID column_id_offset) {
+                                             JoinGraph::Vertices& o_vertices,
+                                             JoinGraph::Edges& o_edges,
+                                             JoinGraph::EdgeNodes& o_edge_nodes,
+                                             ColumnID column_id_offset) {
   // To make it possible to call search_join_graph() on both children without having to check whether they are nullptr.
   if (!node) return;
 
@@ -57,6 +62,8 @@ void JoinGraph::_traverse_ast_for_join_graph(const std::shared_ptr<AbstractASTNo
     o_vertices.emplace_back(node);
     return;
   }
+
+  o_edge_nodes.emplace_back(node);
 
   const auto join_node = std::static_pointer_cast<JoinNode>(node);
 
