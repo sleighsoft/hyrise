@@ -13,9 +13,11 @@ namespace opossum {
  */
 class JoinOrderingTableStatistics : public TableStatistics {
  public:
-  JoinOrderingTableStatistics(int32_t min, int32_t max, float row_count) : TableStatistics(row_count, 1) {
+  JoinOrderingTableStatistics(int32_t min, int32_t max, float row_count) :
+    TableStatistics(row_count,
+      std::vector<std::shared_ptr<BaseColumnStatistics>>{
+        std::make_shared<ColumnStatistics<int32_t>>(ColumnID{0}, row_count, min, max, 1.0f)}) {
     Assert(min <= max, "min value should be smaller than max value");
-    _column_statistics[0] = std::make_shared<ColumnStatistics<int32_t>>(ColumnID{0}, row_count, min, max, 1.0f);
   }
 };
 

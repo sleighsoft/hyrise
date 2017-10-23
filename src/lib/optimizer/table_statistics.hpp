@@ -52,15 +52,16 @@ class TableStatistics : public std::enable_shared_from_this<TableStatistics> {
   explicit TableStatistics(const std::shared_ptr<Table> table);
 
   /**
-   * Intended for mocking statistics
-   */
-  TableStatistics(float row_count, size_t column_count);
-
-  /**
    * Table statistics should not be copied by other actors.
    * Copy constructor not private as copy is used by make_shared.
    */
   TableStatistics(const TableStatistics& table_statistics) = default;
+
+  /**
+   * Create the TableStatistics by explicitly specifying its underlying data. Intended for statistics tests or to
+   * supply mocked statistics to a MockTableNode
+   */
+  TableStatistics(float row_count, const std::vector<std::shared_ptr<BaseColumnStatistics>>& column_statistics);
 
   /**
    * Returns the expected row_count of the output of the corresponding operator.

@@ -11,22 +11,16 @@
 namespace opossum {
 
 /**
- * Node that represents a table that has no data backing it, but may provide (mocked) statistics
+ * Node that represents a table that has no data backing it, but provides (mocked) statistics. Intended for usage in
+ * tests (e.g. optimizer tests that just rely on statistics and not actual data) and the playground
  */
 class MockTableNode : public AbstractASTNode {
  public:
   MockTableNode(const std::string& name, size_t column_count);
-  MockTableNode(const std::shared_ptr<TableStatistics>& statistics, const std::string& name);
+  explicit MockTableNode(const std::shared_ptr<TableStatistics>& statistics, const std::string& name);
 
   const std::vector<ColumnID>& output_column_id_to_input_column_id() const override;
   const std::vector<std::string>& output_column_names() const override;
-
-  bool knows_table(const std::string& table_name) const override;
-
-  std::vector<ColumnID> get_output_column_ids_for_table(const std::string& table_name) const override;
-
-  std::optional<ColumnID> find_column_id_by_named_column_reference(
-      const NamedColumnReference& named_column_reference) const override;
 
   std::string description() const override;
   std::string get_verbose_column_name(ColumnID column_id) const override;

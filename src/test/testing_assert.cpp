@@ -21,7 +21,7 @@ using Matrix = std::vector<std::vector<opossum::AllTypeVariant>>;
 
 Matrix _table_to_matrix(const opossum::Table& t) {
   // initialize matrix with table sizes
-  Matrix matrix(t.row_count(), std::vector<opossum::AllTypeVariant>(t.col_count()));
+  Matrix matrix(t.row_count(), std::vector<opossum::AllTypeVariant>(t.column_count()));
 
   // set values
   unsigned row_offset = 0;
@@ -31,7 +31,7 @@ Matrix _table_to_matrix(const opossum::Table& t) {
     // an empty table's chunk might be missing actual columns
     if (chunk.size() == 0) continue;
 
-    for (opossum::ColumnID col_id{0}; col_id < t.col_count(); ++col_id) {
+    for (opossum::ColumnID col_id{0}; col_id < t.column_count(); ++col_id) {
       const auto column = chunk.get_column(col_id);
 
       for (opossum::ChunkOffset chunk_offset = 0; chunk_offset < chunk.size(); ++chunk_offset) {
@@ -65,7 +65,7 @@ namespace opossum {
   Matrix right = _table_to_matrix(tright);
   // compare schema of tables
   //  - column count
-  if (tleft.col_count() != tright.col_count()) {
+  if (tleft.column_count() != tright.column_count()) {
     _print_matrix(left);
     _print_matrix(right);
     return ::testing::AssertionFailure() << "Number of columns is different.";
@@ -73,7 +73,7 @@ namespace opossum {
 
   //  - column names and types
   std::string left_col_type, right_col_type;
-  for (ColumnID col_id{0}; col_id < tright.col_count(); ++col_id) {
+  for (ColumnID col_id{0}; col_id < tright.column_count(); ++col_id) {
     left_col_type = tleft.column_type(col_id);
     right_col_type = tright.column_type(col_id);
     // This is needed for the SQLiteTestrunner, since SQLite does not differentiate between float/double, and int/long.

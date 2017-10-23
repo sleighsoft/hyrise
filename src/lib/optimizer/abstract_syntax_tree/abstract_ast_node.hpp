@@ -30,6 +30,8 @@ enum class ASTNodeType {
   Update
 };
 
+enum class ASTChildSide { Left, Right };
+
 struct NamedColumnReference {
   std::string column_name;
   std::optional<std::string> table_name = std::nullopt;
@@ -54,6 +56,12 @@ class AbstractASTNode : public std::enable_shared_from_this<AbstractASTNode> {
    */
   virtual bool is_optimizable() const;
 
+  /**
+   * @pre this has a parent
+   * @return whether this is its parents left or right child.
+   */
+  ASTChildSide get_child_side() const;
+
   // @{
   /**
    * Set and get the parent/children of this node.
@@ -61,7 +69,7 @@ class AbstractASTNode : public std::enable_shared_from_this<AbstractASTNode> {
    * The _parent is implicitly set in set_left_child/set_right_child.
    * For un-setting _parent use clear_parent().
    *
-   * set_children() is a shorthand for `set_left_child(); set_right_child();`
+   * set_child() is a shorthand for set_left_child() or set_right_child(), useful if the side is a runtime value
    */
   std::shared_ptr<AbstractASTNode> parent() const;
   void clear_parent();
@@ -73,6 +81,7 @@ class AbstractASTNode : public std::enable_shared_from_this<AbstractASTNode> {
   void set_right_child(const std::shared_ptr<AbstractASTNode>& right);
 
   void set_children(const std::shared_ptr<AbstractASTNode>& left, const std::shared_ptr<AbstractASTNode>& right);
+  void set_child(ASTChildSide side, const std::shared_ptr<AbstractASTNode>& child);
   // @}
 
   ASTNodeType type() const;

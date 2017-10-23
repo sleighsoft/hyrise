@@ -158,7 +158,6 @@ set(
     planviz/ast_visualizer.hpp
     planviz/sql_query_plan_visualizer.cpp
     planviz/sql_query_plan_visualizer.hpp
-    polymorphic_allocator.hpp
     resolve_type.hpp
     scheduler/abstract_scheduler.cpp
     scheduler/abstract_scheduler.hpp
@@ -261,6 +260,8 @@ set(
     utils/numa_memory_resource.hpp
     utils/type_utils.cpp
     utils/type_utils.hpp
+    utils/performance_warning.cpp
+    utils/performance_warning.hpp
 )
 
 set(

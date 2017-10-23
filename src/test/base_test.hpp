@@ -5,6 +5,7 @@
 #include <utility>
 #include <vector>
 
+#include "operators/abstract_operator.hpp"
 #include "storage/dictionary_compression.hpp"
 #include "storage/table.hpp"
 #include "storage/value_column.hpp"

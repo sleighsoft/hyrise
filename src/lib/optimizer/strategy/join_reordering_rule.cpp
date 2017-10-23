@@ -14,6 +14,8 @@ bool JoinReorderingRule::apply_to(const std::shared_ptr<AbstractASTNode>& node) 
 
   auto root = node->parent();
   Assert(root, "Need a root node to attach result to");
+  auto child_side = node->get_child_side();
+
   Assert(!root->right_child(), "Root node must only have one child");
 
   // Build join Graph
@@ -24,7 +26,7 @@ bool JoinReorderingRule::apply_to(const std::shared_ptr<AbstractASTNode>& node) 
 
   // Invoke DPsize
   auto subroot = DPsize(join_graph).run();
-  root->set_left_child(subroot);
+  root->set_child(child_side, subroot);
 
   // Continue with vertices
   for (auto& vertex : join_graph->vertices()) {
