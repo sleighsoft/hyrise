@@ -13,6 +13,7 @@
 #include "optimizer/table_statistics.hpp"
 #include "types.hpp"
 #include "utils/assert.hpp"
+#include "utils/type_utils.hpp"
 
 namespace opossum {
 
@@ -201,6 +202,16 @@ const std::optional<ScanType>& JoinNode::scan_type() const { return _scan_type; 
 
 JoinMode JoinNode::join_mode() const { return _join_mode; }
 
+AbstractASTNode::ColumnOrigin JoinNode::get_column_origin(ColumnID column_id) const {
+  DebugAssert(left_child() && right_child(), "Need both children to determine column origin");
+  if (column_id >= left_child()->output_col_count()) {
+    const auto right_column_id = make_column_id(column_id - left_child()->output_col_count());
+    DebugAssert(right_column_id < right_child()->output_col_count());
+    return right_child()->get_column_origin(right_column_id);
+  }
+  return left_child()->get_column_origin(column_id);
+}
+
 std::string JoinNode::get_verbose_column_name(ColumnID column_id) const {
   Assert(left_child() && right_child(), "Can't generate column names without children being set");
 
@@ -214,6 +225,40 @@ std::string JoinNode::get_verbose_column_name(ColumnID column_id) const {
 void JoinNode::_on_child_changed() {
   _output_column_names.clear();
   _output_column_id_to_input_column_id.clear();
+}
+
+void JoinNode::apply_column_id_mapping(const ColumnIDMapping &column_id_mapping,
+                                           const std::optional<ASTChildSide> &caller_child_side) {
+  DebugAssert(left_child() && right_child(), "Children need to be set for this operation");
+  DebugAssert(caller_child_side, "JoinNode needs to know which childs column_id_mapping changed");
+
+  ColumnIDMapping join_column_id_mapping(output_col_count(), INVALID_COLUMN_ID);
+
+  if (caller_child_side == ASTChildSide::Left) {
+    if (_join_column_ids) {
+      _join_column_ids->first = column_id_mapping[_join_column_ids->first];
+    }
+
+    std::copy(column_id_mapping.begin(), column_id_mapping.end(), join_column_id_mapping.begin());
+    std::iota(join_column_id_mapping.begin() + left_child()->output_col_count(),
+              join_column_id_mapping.end(),
+              make_column_id(left_child()->output_col_count()));
+  } else {
+    if (_join_column_ids) {
+      _join_column_ids->second = column_id_mapping[_join_column_ids->second];
+    }
+    std::iota(join_column_id_mapping.begin(),
+              join_column_id_mapping.begin() + left_child()->output_col_count(),
+              ColumnID{0});
+    std::copy(column_id_mapping.begin + left_child()->output_col_count(),
+              column_id_mapping.end(),
+              join_column_id_mapping.begin());
+  }
+
+  auto parent = this->parent();
+  if (parent) {
+    parent->apply_column_id_mapping(join_column_id_mapping, get_child_side());
+  }
 }
 
 void JoinNode::_update_output() const {

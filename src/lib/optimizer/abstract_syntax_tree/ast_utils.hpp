@@ -2,11 +2,14 @@
 
 #include <memory>
 
+#include "optimizer/abstract_syntax_tree/abstract_ast_node.hpp"
 #include "types.hpp"
 
 /**
  * This file contains functions that operate on AbstractSyntaxTrees, but, in order to keep the interface of
  * AbstractASTNode clean, are not part of the class.
+ * This is intended for functionality that is *read-only* and operates on the interface of AbstractASTNode without
+ * needing to know of derived node types.
  */
 
 namespace opossum {
@@ -38,5 +41,13 @@ bool ast_contains_join_edge(const std::shared_ptr<const AbstractASTNode>& node, 
  */
 ColumnID ast_get_first_column_id_of_descendant(const std::shared_ptr<const AbstractASTNode>& node,
                                                const std::shared_ptr<const AbstractASTNode>& descendant);
+
+/**
+ * Given two shuffled sets of ColumnOrigins, determine the mapping of the indices from one (column_origins_a) into the
+ * other (column_origins_b)
+ */
+AbstractASTNode::ColumnIDMapping ast_generate_column_id_mapping(const AbstractASTNode::ColumnOrigins &column_origins_a,
+                                                   const AbstractASTNode::ColumnOrigins &column_origins_b);
+
 
 }  // namespace opossum

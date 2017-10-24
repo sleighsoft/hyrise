@@ -13,6 +13,7 @@
 #include "optimizer/table_statistics.hpp"
 #include "types.hpp"
 #include "utils/assert.hpp"
+#include "utils/type_utils.hpp"
 
 namespace opossum {
 
@@ -218,6 +219,34 @@ void AbstractASTNode::replace_in_tree(const std::shared_ptr<AbstractASTNode>& no
 }
 
 void AbstractASTNode::set_alias(const std::optional<std::string>& table_alias) { _table_alias = table_alias; }
+
+AbstractASTNode::ColumnOrigins AbstractASTNode::get_column_origins() const {
+  ColumnOrigins column_origins(output_col_count());
+
+  for (size_t column_idx = 0; column_idx < column_origins.size(); ++column_idx) {
+    column_origins[column_idx] = get_column_origin(make_column_id(column_idx));
+  }
+
+  return column_origins;
+};
+
+AbstractASTNode::ColumnOrigin AbstractASTNode::get_column_origin(ColumnID column_id) const {
+  const auto input_column_id = output_column_id_to_input_column_id()[column_id]
+  if (input_column_id == INVALID_COLUMN_ID) {
+    return {shared_from_this(), column_id};
+  }
+
+  DebugAssert(left_child(), "Must have left child to determine column origin");
+  return left_child()->get_column_origin(input_column_id);
+}
+
+void AbstractASTNode::apply_column_id_mapping(const ColumnIDMapping &column_id_mapping,
+                                              const std::optional<ASTChildSide> &caller_child_side) {
+  auto parent = _parent.lock();
+  if (parent) {
+    parent->apply_column_id_mapping(column_id_mapping, get_child_side());
+  }
+}
 
 void AbstractASTNode::print(std::ostream& out, std::vector<bool> levels) const {
   const auto max_level = levels.empty() ? 0 : levels.size() - 1;

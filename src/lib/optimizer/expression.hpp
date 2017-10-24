@@ -156,6 +156,12 @@ class Expression : public std::enable_shared_from_this<Expression> {
    */
   std::string to_string(const std::vector<std::string>& input_column_names = {}) const;
 
+  /**
+   * When optimizer rules change column orders, this function is used to adapt the Expressions of AST nodes to the new
+   * column order
+   */
+  void apply_column_id_mapping(const std::vector<ColumnID> & column_id_mapping);
+
   bool operator==(const Expression& rhs) const;
 
  private:

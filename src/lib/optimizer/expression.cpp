@@ -331,6 +331,23 @@ void Expression::set_expression_list(const std::vector<std::shared_ptr<Expressio
   _expression_list = expression_list;
 }
 
+void Expression::apply_column_id_mapping(const std::vector<ColumnID> & column_id_mapping) {
+  if (_column_id) {
+    _column_id = column_id_mapping[*_column_id];
+  }
+
+  for (auto& expression : _expression_list) {
+    expression->apply_column_id_mapping(column_id_mapping);
+  }
+
+  if (_left_child) {
+    _left_child->apply_column_id_mapping(column_id_mapping);
+  }
+  if (_right_child) {
+    _right_child->apply_column_id_mapping(column_id_mapping);
+  }
+}
+
 bool Expression::operator==(const Expression& rhs) const {
   auto compare_expression_ptrs = [](const auto& ptr_lhs, const auto& ptr_rhs) {
     if (ptr_lhs && ptr_rhs) {

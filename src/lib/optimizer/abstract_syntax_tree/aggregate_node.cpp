@@ -72,6 +72,22 @@ std::string AggregateNode::description() const {
   return s.str();
 }
 
+void AggregateNode::apply_column_id_mapping(const ColumnIDMapping &column_id_mapping,
+                                            const std::optional<ASTChildSide> &caller_child_side) {
+  for (const auto & aggregate_expression : _aggregate_expressions) {
+    aggregate_expression->apply_column_id_mapping(column_id_mapping);
+  }
+
+  for (auto & group_by_column : _groupby_column_ids) {
+    group_by_column = column_id_mapping[group_by_column];
+  }
+
+  auto parent = this->parent();
+  if (parent) {
+    parent->apply_column_id_mapping(column_id_mapping, get_child_side());
+  }
+}
+
 void AggregateNode::_on_child_changed() {
   DebugAssert(!right_child(), "AggregateNode can't have a right child.");
 

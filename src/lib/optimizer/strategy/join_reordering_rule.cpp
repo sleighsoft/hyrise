@@ -4,9 +4,11 @@
 #include "join_ordering/dpsize.hpp"
 #include "join_ordering/greedy_join_ordering.hpp"
 #include "join_ordering/join_graph.hpp"
+#include "optimizer/abstract_syntax_tree/ast_utils.hpp"
 #include "optimizer/abstract_syntax_tree/abstract_ast_node.hpp"
 #include "optimizer/abstract_syntax_tree/join_node.hpp"
 #include "types.hpp"
+#include "utils/assert.hpp"
 #include "utils/assert.hpp"
 
 namespace opossum {
@@ -29,6 +31,9 @@ bool JoinReorderingRule::apply_to(const std::shared_ptr<AbstractASTNode>& node) 
   Assert(parent, "Need a parent node to attach result to");
   auto child_side = node->get_child_side();
 
+  //
+  const auto pre_ordering_column_origins = node->get_column_origins();
+
   // Build join Graph
   auto join_graph = JoinGraph::build_join_graph(node);
 
@@ -39,9 +44,16 @@ bool JoinReorderingRule::apply_to(const std::shared_ptr<AbstractASTNode>& node) 
 
   // Invoke Ordering algorithm
   auto join_plan = GreedyJoinOrdering(join_graph).run();
+
+  //
+  const auto post_ordering_column_origins = join_plan->get_column_origins();
+  const auto column_id_mapping = ast_generate_column_id_mapping(pre_ordering_column_origins, post_ordering_column_origins);
+
+  // Re-attach the newly ordered join plan
+  parent->apply_column_id_mapping(column_id_mapping);
   parent->set_child(child_side, join_plan);
 
-  // Continue with vertices
+  // Continue looking for Join Graphs to reorder in vertices
   for (auto& vertex : join_graph->vertices()) {
     _apply_to_children(vertex);
   }

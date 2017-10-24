@@ -49,6 +49,10 @@ struct NamedColumnReference {
  */
 class AbstractASTNode : public std::enable_shared_from_this<AbstractASTNode> {
  public:
+  using ColumnOrigin = std::pair<std::shared_ptr<AbstractASTNode>, ColumnID;
+  using ColumnOrigins = std::vector<ColumnOrigin>;
+  using ColumnIDMapping = std::vector<ColumnID>;
+
   explicit AbstractASTNode(ASTNodeType node_type);
 
   /**
@@ -201,7 +205,31 @@ class AbstractASTNode : public std::enable_shared_from_this<AbstractASTNode> {
 
   // @{
   /**
-   * Functions for debugging puposes.
+   * For all columns that this node outputs, find the node that originally "created" it, and the ColumnID in that node.
+   * Columns are "created" by Projections, Aggregates, StoredTables or MockTables, all other nodes just forward them.
+   *
+   * JoinNode needs to override get_column_origin() all other nodes will default to forwarding this request to their
+   * left input.
+   */
+  ColumnOrigins get_column_origins() const;
+  virtual ColumnOrigin get_column_origin(ColumnID column_id) const;
+  // @}
+
+  /**
+   * When a node changes the order of its columns (e.g. in an optimizer rule), the AST has to adapt to it recursively
+   * upwards. Recursion stops at Projections and Aggregations and needs special handling in all nodes that refer to
+   * ColumnIDs (e.g. Predicate, Sort, Join).
+   * apply_column_id_mapping() calls the virtual _on_apply_column_id_mapping() and continues to invoke itself on the
+   * parent, if _on_apply_column_id_mapping() returns true
+   *
+   * @param caller_child_side only revelvant for JoinNodes, can be ignored for all other node types
+   */
+  virtual void apply_column_id_mapping(const ColumnIDMapping &column_id_mapping,
+                               const std::optional<ASTChildSide> &caller_child_side = std::nullopt);
+
+  // @{
+  /**
+   * Functions for debugging purposes.
    */
 
   /**
