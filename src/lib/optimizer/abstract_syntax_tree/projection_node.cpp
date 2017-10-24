@@ -45,11 +45,6 @@ void ProjectionNode::apply_column_id_mapping(const ColumnIDMapping &column_id_ma
   for (const auto & column_expression : _column_expressions) {
     column_expression->apply_column_id_mapping(column_id_mapping);
   }
-
-  auto parent = this->parent();
-  if (parent) {
-    parent->apply_column_id_mapping(column_id_mapping, get_child_side());
-  }
 }
 
 const std::vector<ColumnID>& ProjectionNode::output_column_id_to_input_column_id() const {
@@ -164,6 +159,18 @@ std::vector<ColumnID> ProjectionNode::get_output_column_ids_for_table(const std:
   }
 
   return output_column_ids_for_table;
+}
+
+std::string ProjectionNode::get_verbose_column_name(ColumnID column_id) const {
+  DebugAssert(left_child(), "Need input to generate name");
+  DebugAssert(column_id < _column_expressions.size(), "ColumnID out of range");
+
+  const auto& column_expression = _column_expressions[column_id];
+
+  if (column_expression->alias()) {
+    return *column_expression->alias();
+  }
+  return column_expression->description();
 }
 
 void ProjectionNode::_update_output() const {

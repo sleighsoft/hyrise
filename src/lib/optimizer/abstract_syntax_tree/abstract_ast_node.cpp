@@ -24,7 +24,12 @@ bool AbstractASTNode::is_optimizable() const { return true; }
 ASTChildSide AbstractASTNode::get_child_side() const {
   auto parent = this->parent();
   Assert(parent, "get_child_side() can only be called on node with a parent");
-  return parent->left_child() == shared_from_this() ? ASTChildSide::Left : ASTChildSide::Right;
+  if (parent->left_child() == shared_from_this()) {
+    return ASTChildSide::Left;
+  } else {
+    DebugAssert(parent->right_child() == shared_from_this(), "Invalid binary tree");
+    return ASTChildSide::Right;
+  }
 }
 
 std::shared_ptr<AbstractASTNode> AbstractASTNode::parent() const { return _parent.lock(); }
@@ -209,12 +214,8 @@ void AbstractASTNode::replace_in_tree(const std::shared_ptr<AbstractASTNode>& no
 
   auto parent = node_to_replace->parent();
   if (parent) {
-    if (parent->left_child() == node_to_replace) {
-      parent->set_left_child(shared_from_this());
-    } else {
-      Assert(parent->right_child() == shared_from_this(), "Invalid binary tree");
-      parent->set_right_child(shared_from_this());
-    }
+    const auto node_to_replace_child_side = node_to_replace->get_child_side();
+    parent->set_child(node_to_replace_child_side, shared_from_this());
   }
 }
 
@@ -231,7 +232,9 @@ AbstractASTNode::ColumnOrigins AbstractASTNode::get_column_origins() const {
 };
 
 AbstractASTNode::ColumnOrigin AbstractASTNode::get_column_origin(ColumnID column_id) const {
-  const auto input_column_id = output_column_id_to_input_column_id()[column_id]
+  DebugAssert(column_id < output_column_id_to_input_column_id().size(), "ColumnID out of range");
+
+  const auto input_column_id = output_column_id_to_input_column_id()[column_id];
   if (input_column_id == INVALID_COLUMN_ID) {
     return {shared_from_this(), column_id};
   }

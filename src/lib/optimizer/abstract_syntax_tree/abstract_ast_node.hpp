@@ -49,7 +49,7 @@ struct NamedColumnReference {
  */
 class AbstractASTNode : public std::enable_shared_from_this<AbstractASTNode> {
  public:
-  using ColumnOrigin = std::pair<std::shared_ptr<AbstractASTNode>, ColumnID;
+  using ColumnOrigin = std::pair<std::shared_ptr<const AbstractASTNode>, ColumnID>;
   using ColumnOrigins = std::vector<ColumnOrigin>;
   using ColumnIDMapping = std::vector<ColumnID>;
 

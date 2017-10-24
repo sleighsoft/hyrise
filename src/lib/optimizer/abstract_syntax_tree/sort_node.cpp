@@ -23,7 +23,7 @@ std::string SortNode::description() const {
   s << "[Sort] ";
 
   auto stream_aggregate = [&](const OrderByDefinition& definition) {
-    s << boost::lexical_cast<std::string>(definition.column_id);
+    s << get_verbose_column_name(definition.column_id);
     s << " (" << order_by_mode_to_string.at(definition.order_by_mode) + ")";
   };
 
@@ -42,5 +42,17 @@ std::string SortNode::description() const {
 }
 
 const std::vector<OrderByDefinition>& SortNode::order_by_definitions() const { return _order_by_definitions; }
+
+void SortNode::apply_column_id_mapping(const ColumnIDMapping &column_id_mapping,
+                                            const std::optional<ASTChildSide> &caller_child_side) {
+  for (auto& order_by_definition : _order_by_definitions) {
+    order_by_definition.column_id = column_id_mapping[order_by_definition.column_id];
+  }
+
+  auto parent = this->parent();
+  if (parent) {
+    parent->apply_column_id_mapping(column_id_mapping, get_child_side());
+  }
+}
 
 }  // namespace opossum

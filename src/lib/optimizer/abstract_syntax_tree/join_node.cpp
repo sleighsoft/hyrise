@@ -204,9 +204,9 @@ JoinMode JoinNode::join_mode() const { return _join_mode; }
 
 AbstractASTNode::ColumnOrigin JoinNode::get_column_origin(ColumnID column_id) const {
   DebugAssert(left_child() && right_child(), "Need both children to determine column origin");
-  if (column_id >= left_child()->output_col_count()) {
+  if (static_cast<size_t>(column_id) >= left_child()->output_col_count()) {
     const auto right_column_id = make_column_id(column_id - left_child()->output_col_count());
-    DebugAssert(right_column_id < right_child()->output_col_count());
+    DebugAssert(static_cast<size_t>(right_column_id) < right_child()->output_col_count(), "ColumnID out of range");
     return right_child()->get_column_origin(right_column_id);
   }
   return left_child()->get_column_origin(column_id);
@@ -250,7 +250,7 @@ void JoinNode::apply_column_id_mapping(const ColumnIDMapping &column_id_mapping,
     std::iota(join_column_id_mapping.begin(),
               join_column_id_mapping.begin() + left_child()->output_col_count(),
               ColumnID{0});
-    std::copy(column_id_mapping.begin + left_child()->output_col_count(),
+    std::copy(column_id_mapping.begin() + left_child()->output_col_count(),
               column_id_mapping.end(),
               join_column_id_mapping.begin());
   }

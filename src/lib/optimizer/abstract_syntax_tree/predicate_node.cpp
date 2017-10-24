@@ -59,8 +59,10 @@ std::shared_ptr<TableStatistics> PredicateNode::derive_statistics_from(
 
 void PredicateNode::apply_column_id_mapping(const ColumnIDMapping &column_id_mapping,
                                              const std::optional<ASTChildSide> &caller_child_side) {
-  for (const auto & column_expression : _column_expressions) {
-    column_expression->apply_column_id_mapping(column_id_mapping);
+  _column_id = column_id_mapping[_column_id];
+
+  if (_value.type() == typeid(ColumnID)) {
+    _value = column_id_mapping[boost::get<ColumnID>(_value)];
   }
 
   auto parent = this->parent();

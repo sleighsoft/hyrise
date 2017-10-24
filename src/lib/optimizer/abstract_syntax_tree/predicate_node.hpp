@@ -39,10 +39,13 @@ class PredicateNode : public AbstractASTNode {
       const std::shared_ptr<AbstractASTNode>& left_child,
       const std::shared_ptr<AbstractASTNode>& right_child = nullptr) const override;
 
+  void apply_column_id_mapping(const ColumnIDMapping &column_id_mapping,
+                               const std::optional<ASTChildSide> &caller_child_side) override;
+
  private:
-  const ColumnID _column_id;
+  ColumnID _column_id;
   const ScanType _scan_type;
-  const AllParameterVariant _value;
+  AllParameterVariant _value;
   const std::optional<AllTypeVariant> _value2;
 };
 
