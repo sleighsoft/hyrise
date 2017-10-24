@@ -30,8 +30,8 @@ class SortNode : public AbstractASTNode {
 
   const std::vector<OrderByDefinition>& order_by_definitions() const;
 
-  void apply_column_id_mapping(const ColumnIDMapping &column_id_mapping,
-                                              const std::optional<ASTChildSide> &caller_child_side) override;
+  void reorder_columns(const ColumnIDMapping &column_id_mapping,
+                                              const std::optional<ASTChildSide> &caller_child_side = std::nullopt) override;
 
  private:
   std::vector<OrderByDefinition> _order_by_definitions;

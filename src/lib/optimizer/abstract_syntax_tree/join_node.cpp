@@ -202,7 +202,7 @@ const std::optional<ScanType>& JoinNode::scan_type() const { return _scan_type; 
 
 JoinMode JoinNode::join_mode() const { return _join_mode; }
 
-AbstractASTNode::ColumnOrigin JoinNode::get_column_origin(ColumnID column_id) const {
+ColumnOrigins JoinNode::_get_column_origin(ColumnID column_id) const {
   DebugAssert(left_child() && right_child(), "Need both children to determine column origin");
   if (static_cast<size_t>(column_id) >= left_child()->output_col_count()) {
     const auto right_column_id = make_column_id(column_id - left_child()->output_col_count());
@@ -227,7 +227,7 @@ void JoinNode::_on_child_changed() {
   _output_column_id_to_input_column_id.clear();
 }
 
-void JoinNode::apply_column_id_mapping(const ColumnIDMapping &column_id_mapping,
+void JoinNode::reorder_columns(const ColumnIDMapping &column_id_mapping,
                                            const std::optional<ASTChildSide> &caller_child_side) {
   DebugAssert(left_child() && right_child(), "Children need to be set for this operation");
   DebugAssert(caller_child_side, "JoinNode needs to know which childs column_id_mapping changed");
@@ -257,7 +257,7 @@ void JoinNode::apply_column_id_mapping(const ColumnIDMapping &column_id_mapping,
 
   auto parent = this->parent();
   if (parent) {
-    parent->apply_column_id_mapping(join_column_id_mapping, get_child_side());
+    parent->reorder_columns(join_column_id_mapping, get_child_side());
   }
 }
 

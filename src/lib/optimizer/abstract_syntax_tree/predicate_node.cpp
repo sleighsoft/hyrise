@@ -57,7 +57,7 @@ std::shared_ptr<TableStatistics> PredicateNode::derive_statistics_from(
   return left_child->get_statistics()->predicate_statistics(_column_id, _scan_type, _value, _value2);
 }
 
-void PredicateNode::apply_column_id_mapping(const ColumnIDMapping &column_id_mapping,
+void PredicateNode::reorder_columns(const ColumnIDMapping &column_id_mapping,
                                              const std::optional<ASTChildSide> &caller_child_side) {
   _column_id = column_id_mapping[_column_id];
 
@@ -67,7 +67,7 @@ void PredicateNode::apply_column_id_mapping(const ColumnIDMapping &column_id_map
 
   auto parent = this->parent();
   if (parent) {
-    parent->apply_column_id_mapping(column_id_mapping, get_child_side());
+    parent->reorder_columns(column_id_mapping, get_child_side());
   }
 }
 

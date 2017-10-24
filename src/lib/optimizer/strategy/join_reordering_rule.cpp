@@ -50,7 +50,7 @@ bool JoinReorderingRule::apply_to(const std::shared_ptr<AbstractASTNode>& node) 
   const auto column_id_mapping = ast_generate_column_id_mapping(pre_ordering_column_origins, post_ordering_column_origins);
 
   // Re-attach the newly ordered join plan
-  parent->apply_column_id_mapping(column_id_mapping);
+  parent->reorder_columns(column_id_mapping);
   parent->set_child(child_side, join_plan);
 
   // Continue looking for Join Graphs to reorder in vertices

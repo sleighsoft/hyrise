@@ -136,12 +136,12 @@ ColumnID ast_get_first_column_id_of_descendant(const std::shared_ptr<const Abstr
   return INVALID_COLUMN_ID;
 }
 
-AbstractASTNode::ColumnIDMapping ast_generate_column_id_mapping(const AbstractASTNode::ColumnOrigins &column_origins_a,
-                                                   const AbstractASTNode::ColumnOrigins &column_origins_b) {
+ColumnIDMapping ast_generate_column_id_mapping(const ColumnOrigins &column_origins_a,
+                                                   const ColumnOrigins &column_origins_b) {
   DebugAssert(column_origins_a.size() == column_origins_b.size(), "Params must be shuffled set of each other");
 
-  AbstractASTNode::ColumnIDMapping output_mapping(column_origins_a.size(), INVALID_COLUMN_ID);
-  std::map<AbstractASTNode::ColumnOrigin, size_t> column_origin_to_input_idx;
+  ColumnIDMapping output_mapping(column_origins_a.size(), INVALID_COLUMN_ID);
+  std::map<ColumnOrigins, size_t> column_origin_to_input_idx;
 
   for (size_t column_idx = 0; column_idx < column_origins_a.size(); ++column_idx) {
     const auto result = column_origin_to_input_idx.emplace(column_origins_a[column_idx], column_idx);

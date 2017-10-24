@@ -6,38 +6,13 @@
 #include <string>
 #include <vector>
 
+#include "optimizer/abstract_syntax_tree/ast_types.hpp"
+
 namespace opossum {
 
 struct ColumnID;
 class Expression;
 class TableStatistics;
-
-enum class ASTNodeType {
-  Aggregate,
-  Delete,
-  DummyTable,
-  Insert,
-  Join,
-  Limit,
-  Mock,
-  Predicate,
-  Projection,
-  Root,
-  ShowColumns,
-  ShowTables,
-  Sort,
-  StoredTable,
-  Update
-};
-
-enum class ASTChildSide { Left, Right };
-
-struct NamedColumnReference {
-  std::string column_name;
-  std::optional<std::string> table_name = std::nullopt;
-
-  std::string as_string() const;
-};
 
 /**
  * Base class for a Node in the Abstract Syntax Tree on which the Query Optimization is performed on.
@@ -49,10 +24,6 @@ struct NamedColumnReference {
  */
 class AbstractASTNode : public std::enable_shared_from_this<AbstractASTNode> {
  public:
-  using ColumnOrigin = std::pair<std::shared_ptr<const AbstractASTNode>, ColumnID>;
-  using ColumnOrigins = std::vector<ColumnOrigin>;
-  using ColumnIDMapping = std::vector<ColumnID>;
-
   explicit AbstractASTNode(ASTNodeType node_type);
 
   /**
@@ -193,7 +164,7 @@ class AbstractASTNode : public std::enable_shared_from_this<AbstractASTNode> {
 
   /**
    * Replaces @param node_to_replace with this node.
-   * Fails if this node was already part of a tree, i.e. has a parent or children
+   * Fails if `this` was already part of a tree, i.e. has a parent or children
    */
   void replace_in_tree(const std::shared_ptr<AbstractASTNode>& node_to_replace);
 
@@ -205,27 +176,13 @@ class AbstractASTNode : public std::enable_shared_from_this<AbstractASTNode> {
 
   // @{
   /**
-   * For all columns that this node outputs, find the node that originally "created" it, and the ColumnID in that node.
-   * Columns are "created" by Projections, Aggregates, StoredTables or MockTables, all other nodes just forward them.
-   *
-   * JoinNode needs to override get_column_origin() all other nodes will default to forwarding this request to their
-   * left input.
+   * Function for transforming the ColumnIDs referenced throughout the AST. Especially used for altering Join Plans
+   * in a way that introduces a new ordering of the columns.
+   * Call if `this` replaces a node with ColumnOrigins `prev_column_origins`.
+   * This will calculate a ColumnIDMapping and apply it recursively upwards. See _on_reorder_columns() for more info
    */
-  ColumnOrigins get_column_origins() const;
-  virtual ColumnOrigin get_column_origin(ColumnID column_id) const;
+  void reorder_columns(const ColumnOrigins& prev_column_origins);
   // @}
-
-  /**
-   * When a node changes the order of its columns (e.g. in an optimizer rule), the AST has to adapt to it recursively
-   * upwards. Recursion stops at Projections and Aggregations and needs special handling in all nodes that refer to
-   * ColumnIDs (e.g. Predicate, Sort, Join).
-   * apply_column_id_mapping() calls the virtual _on_apply_column_id_mapping() and continues to invoke itself on the
-   * parent, if _on_apply_column_id_mapping() returns true
-   *
-   * @param caller_child_side only revelvant for JoinNodes, can be ignored for all other node types
-   */
-  virtual void apply_column_id_mapping(const ColumnIDMapping &column_id_mapping,
-                               const std::optional<ASTChildSide> &caller_child_side = std::nullopt);
 
   // @{
   /**
@@ -265,6 +222,30 @@ class AbstractASTNode : public std::enable_shared_from_this<AbstractASTNode> {
   // only operate on the column name. If an alias for this subtree is set, but this reference does not match
   // it, the reference cannot be resolved (see knows_table) and std::nullopt is returned.
   std::optional<NamedColumnReference> _resolve_local_alias(const NamedColumnReference& named_column_reference) const;
+
+  /**
+   * For all columns that this node outputs, find the node that originally "created" it, and the ColumnID in that node.
+   * Columns are "created" by Projections, Aggregates, StoredTables or MockTables, all other nodes just forward them.
+   */
+  ColumnOrigins _get_column_origins() const;
+
+  /**
+   * JoinNode needs to override get_column_origin() all other nodes will default to forwarding this request to their
+   * left input, if the column wasn't created by this node
+   */
+  virtual ColumnOrigin _get_column_origin(ColumnID column_id) const;
+
+  /**
+   * When a node changes the order of its columns (e.g. in an optimizer rule), the AST has to adapt to it recursively
+   * upwards. Recursion stops at Projections and Aggregations and needs special handling in all nodes that refer to
+   * ColumnIDs (e.g. Predicate, Sort, Join).
+   * reorder_columns() calls the virtual _on_reorder_columns() and continues to invoke itself on the
+   * parent, if _on_reorder_columns() returns true
+   *
+   * @param caller_child_side only relevant for JoinNodes, can be ignored for all other node types
+   */
+  virtual void _on_reorder_columns(const ColumnIDMapping &column_id_mapping,
+                                    const std::optional<ASTChildSide> &caller_child_side = std::nullopt);
 
  private:
   std::weak_ptr<AbstractASTNode> _parent;

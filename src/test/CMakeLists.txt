@@ -44,6 +44,7 @@ set(
     optimizer/abstract_syntax_tree/abstract_syntax_tree_test.cpp
     optimizer/abstract_syntax_tree/aggregate_node_test.cpp
     optimizer/abstract_syntax_tree/ast_utils_test.cpp
+    optimizer/abstract_syntax_tree/column_id_remapping_test.cpp
     optimizer/abstract_syntax_tree/join_node_test.cpp
     optimizer/abstract_syntax_tree/stored_table_node_test.cpp
     optimizer/abstract_syntax_tree/projection_node_test.cpp

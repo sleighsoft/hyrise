@@ -43,11 +43,11 @@ class JoinNode : public AbstractASTNode {
   std::optional<ColumnID> find_column_id_by_named_column_reference(
       const NamedColumnReference& named_column_reference) const override;
 
-  ColumnOrigin get_column_origin(ColumnID column_id) const override;
+  ColumnOrigin _get_column_origin(ColumnID column_id) const override;
 
   std::string get_verbose_column_name(ColumnID column_id) const override;
 
-  void apply_column_id_mapping(const ColumnIDMapping &column_id_mapping,
+  void reorder_columns(const ColumnIDMapping &column_id_mapping,
                                const std::optional<ASTChildSide> &caller_child_side) override;
 
  protected:

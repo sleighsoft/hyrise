@@ -40,10 +40,10 @@ void ProjectionNode::_on_child_changed() {
   _output_column_id_to_input_column_id.clear();
 }
 
-void ProjectionNode::apply_column_id_mapping(const ColumnIDMapping &column_id_mapping,
+void ProjectionNode::reorder_columns(const ColumnIDMapping &column_id_mapping,
                                                          const std::optional<ASTChildSide> &caller_child_side) {
   for (const auto & column_expression : _column_expressions) {
-    column_expression->apply_column_id_mapping(column_id_mapping);
+    column_expression->reorder_columns(column_id_mapping);
   }
 }
 

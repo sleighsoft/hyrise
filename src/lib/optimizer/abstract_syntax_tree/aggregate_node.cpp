@@ -72,10 +72,10 @@ std::string AggregateNode::description() const {
   return s.str();
 }
 
-void AggregateNode::apply_column_id_mapping(const ColumnIDMapping &column_id_mapping,
+void AggregateNode::reorder_columns(const ColumnIDMapping &column_id_mapping,
                                             const std::optional<ASTChildSide> &caller_child_side) {
   for (const auto & aggregate_expression : _aggregate_expressions) {
-    aggregate_expression->apply_column_id_mapping(column_id_mapping);
+    aggregate_expression->reorder_columns(column_id_mapping);
   }
 
   for (auto & group_by_column : _groupby_column_ids) {

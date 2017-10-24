@@ -2,6 +2,7 @@
 
 #include <memory>
 
+#include "optimizer/abstract_syntax_tree/ast_types.hpp"
 #include "optimizer/abstract_syntax_tree/abstract_ast_node.hpp"
 #include "types.hpp"
 
@@ -46,8 +47,8 @@ ColumnID ast_get_first_column_id_of_descendant(const std::shared_ptr<const Abstr
  * Given two shuffled sets of ColumnOrigins, determine the mapping of the indices from one (column_origins_a) into the
  * other (column_origins_b)
  */
-AbstractASTNode::ColumnIDMapping ast_generate_column_id_mapping(const AbstractASTNode::ColumnOrigins &column_origins_a,
-                                                   const AbstractASTNode::ColumnOrigins &column_origins_b);
+ColumnIDMapping ast_generate_column_id_mapping(const ColumnOrigins &column_origins_a,
+                                                   const ColumnOrigins &column_origins_b);
 
 
 }  // namespace opossum
