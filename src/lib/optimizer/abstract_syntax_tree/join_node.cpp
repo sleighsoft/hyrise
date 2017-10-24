@@ -126,6 +126,7 @@ std::optional<ColumnID> JoinNode::find_column_id_by_named_column_reference(
 
 std::shared_ptr<TableStatistics> JoinNode::derive_statistics_from(
     const std::shared_ptr<AbstractASTNode>& left_child, const std::shared_ptr<AbstractASTNode>& right_child) const {
+  DebugAssert(left_child && right_child, "Can't compute Join statistics without both children");
   if (_join_mode == JoinMode::Cross) {
     return left_child->get_statistics()->generate_cross_join_statistics(right_child->get_statistics());
   } else {

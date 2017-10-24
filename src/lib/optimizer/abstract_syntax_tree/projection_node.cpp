@@ -34,12 +34,18 @@ const std::vector<std::shared_ptr<Expression>>& ProjectionNode::column_expressio
 }
 
 void ProjectionNode::_on_child_changed() {
+  DebugAssert(!right_child(), "Projection can't have a right child");
+
   /**
    * Populates `_output_column_names` and `_output_column_id_to_input_column_id`.
    */
 
   _output_column_names.clear();
   _output_column_id_to_input_column_id.clear();
+
+  if (!left_child()) {
+    return;
+  }
 
   _output_column_names.reserve(_column_expressions.size());
   _output_column_id_to_input_column_id.reserve(_column_expressions.size());

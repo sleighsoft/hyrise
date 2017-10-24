@@ -73,10 +73,14 @@ std::string AggregateNode::description() const {
 }
 
 void AggregateNode::_on_child_changed() {
-  DebugAssert(left_child(), "AggregateNode needs a child.");
+  DebugAssert(!right_child(), "AggregateNode can't have a right child.");
 
   _output_column_names.clear();
   _output_column_id_to_input_column_id.clear();
+
+  if (!left_child()) {
+    return;
+  }
 
   _output_column_names.reserve(_groupby_column_ids.size() + _aggregate_expressions.size());
   _output_column_id_to_input_column_id.reserve(_groupby_column_ids.size() + _aggregate_expressions.size());

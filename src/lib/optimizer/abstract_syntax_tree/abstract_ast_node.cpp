@@ -48,8 +48,6 @@ const std::shared_ptr<AbstractASTNode>& AbstractASTNode::left_child() const { re
 void AbstractASTNode::set_left_child(const std::shared_ptr<AbstractASTNode>& left) {
   if (left == _left_child) return;
 
-  DebugAssert(left || !_right_child, "Node can't have right child and no left child");
-
   _left_child = left;
   if (left) left->_parent = shared_from_this();
 
@@ -60,8 +58,6 @@ const std::shared_ptr<AbstractASTNode>& AbstractASTNode::right_child() const { r
 
 void AbstractASTNode::set_right_child(const std::shared_ptr<AbstractASTNode>& right) {
   if (right == _right_child) return;
-
-  DebugAssert(_left_child != nullptr, "Cannot set right child without having a left child.");
 
   _right_child = right;
   if (right) right->_parent = shared_from_this();
@@ -97,10 +93,10 @@ const std::shared_ptr<TableStatistics> AbstractASTNode::get_statistics() {
 
 std::shared_ptr<TableStatistics> AbstractASTNode::derive_statistics_from(
     const std::shared_ptr<AbstractASTNode>& left_child, const std::shared_ptr<AbstractASTNode>& right_child) const {
-  DebugAssert(static_cast<bool>(_left_child),
+  DebugAssert(left_child,
               "Default implementation of derive_statistics_from() requires a left child, override in concrete node "
               "implementation for different behavior");
-  DebugAssert(!static_cast<bool>(_right_child),
+  DebugAssert(!right_child,
               "Default implementation of derive_statistics_from() cannot have a right_child");
 
   return left_child->get_statistics();
