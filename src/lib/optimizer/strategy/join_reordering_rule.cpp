@@ -32,15 +32,12 @@ bool JoinReorderingRule::apply_to(const std::shared_ptr<AbstractASTNode>& node) 
   // Hold onto the join node, for we're gonna detach its subtree from the AST
   auto join_node = std::dynamic_pointer_cast<JoinNode>(node);
 
-  //
-  parent->set_child(child_side, std::make_shared<ImpostorNode>(join_node));
-
   // Build join Graph
   auto join_graph = JoinGraph::build_join_graph(join_node);
 
   // Remove all nodes above the vertices so we can freely reorder them.
-  for (auto& edge_node : join_graph->edge_nodes()) {
-    edge_node->remove_from_tree();
+  for (auto& edge_node : join_graph->vertices()) {
+    edge_node->clear_parent();
   }
 
   // Invoke Ordering algorithm

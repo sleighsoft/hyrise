@@ -32,28 +32,23 @@ class JoinGraph final {
  public:
   using Vertices = std::vector<std::shared_ptr<AbstractASTNode>>;
   using Edges = std::vector<JoinEdge>;
-  using EdgeNodes = std::vector<std::shared_ptr<AbstractASTNode>>;
 
   static std::shared_ptr<JoinGraph> build_join_graph(const std::shared_ptr<AbstractASTNode>& root);
 
   JoinGraph() = default;
-  JoinGraph(Vertices&& vertices, Edges&& edges, EdgeNodes&& edge_nodes);
+  JoinGraph(Vertices&& vertices, Edges&& edges);
 
   const Vertices& vertices() const;
   const Edges& edges() const;
-  // The nodes that became edges in depth first order
-  const EdgeNodes& edge_nodes() const;
 
   void print(std::ostream& out = std::cout) const;
 
  private:
   static void _traverse_ast_for_join_graph(const std::shared_ptr<AbstractASTNode>& node,
                                            JoinGraph::Vertices& o_vertices,
-                                           JoinGraph::Edges& o_edges,
-                                           JoinGraph::EdgeNodes& o_edge_nodes, ColumnID column_id_offset = ColumnID{0});
+                                           JoinGraph::Edges& o_edges, ColumnID column_id_offset = ColumnID{0});
 
   Vertices _vertices;
   Edges _edges;
-  EdgeNodes _edge_nodes
 };
 }

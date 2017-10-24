@@ -15,9 +15,9 @@ const Optimizer& Optimizer::get() {
 }
 
 Optimizer::Optimizer() {
-//  _rules.emplace_back(std::make_shared<PredicateReorderingRule>());
-//  _rules.emplace_back(std::make_shared<JoinDetectionRule>());
-  _rules.emplace_back(std::make_shared<JoinReorderingRule>());
+  _rules.emplace_back(std::make_shared<PredicateReorderingRule>());
+  _rules.emplace_back(std::make_shared<JoinDetectionRule>());
+  //_rules.emplace_back(std::make_shared<JoinReorderingRule>());
 }
 
 std::shared_ptr<AbstractASTNode> Optimizer::optimize(const std::shared_ptr<AbstractASTNode>& input) const {
@@ -27,8 +27,6 @@ std::shared_ptr<AbstractASTNode> Optimizer::optimize(const std::shared_ptr<Abstr
    */
   const auto root_node = std::make_shared<ASTRootNode>();
   root_node->set_left_child(input);
-
-  input->print();
 
   /**
    * Apply all optimization over and over until all of them stopped changing the AST or the max number of
