@@ -222,6 +222,7 @@ class AbstractASTNode : public std::enable_shared_from_this<AbstractASTNode> {
   // @}
 
  protected:
+  void _child_changed();
   virtual void _on_child_changed() {}
 
   // Used to easily differentiate between node types without pointer casts.
@@ -233,7 +234,7 @@ class AbstractASTNode : public std::enable_shared_from_this<AbstractASTNode> {
   std::optional<std::string> _table_alias;
 
   // If named_column_reference.table_name is the alias set for this subtree, remove the table_name so that we
-  // only operatore on the column name. If an alias for this subtree is set, but this reference does not match
+  // only operate on the column name. If an alias for this subtree is set, but this reference does not match
   // it, the reference cannot be resolved (see knows_table) and std::nullopt is returned.
   std::optional<NamedColumnReference> _resolve_local_alias(const NamedColumnReference& named_column_reference) const;
 

@@ -17,9 +17,6 @@ GreedyJoinOrdering::GreedyJoinOrdering(const std::shared_ptr<const JoinGraph>& i
     : _input_graph(input_graph) {}
 
 std::shared_ptr<AbstractASTNode> GreedyJoinOrdering::run() {
-  std::cout << "Optimizing graph" << std::endl;
-  _input_graph->print();
-
   _left_column_id_of_vertex.resize(_input_graph->vertices().size(), INVALID_COLUMN_ID);
 
   /**
@@ -50,7 +47,6 @@ std::shared_ptr<AbstractASTNode> GreedyJoinOrdering::run() {
   const auto& initial_edges = _edges_by_vertex_id[initial_vertex_idx];
   neighbourhood_edge_indices.insert(initial_edges.begin(), initial_edges.end());
   _left_column_id_of_vertex[initial_vertex_idx] = ColumnID{0};
-  std::cout << "Initial vertex: " << initial_vertex_idx << std::endl;
 
   /**
    * Add all remaining vertices to the join plan
@@ -60,18 +56,14 @@ std::shared_ptr<AbstractASTNode> GreedyJoinOrdering::run() {
            "No neighbourhood left, but the join plan is not done yet. "
            "This means the input graph was not connected in the first place");
 
-    std::cout << "============ Join plan size: " << join_plan_size << std::endl;
-
     /**
      * Find the next vertex to join and store it in `next_join_vertex_idx`
      */
     auto min_join_cost = std::numeric_limits<float>::max();
     auto next_join_edge_idx = 0;  // TODO(moritz) symbolic constant
 
-    std::cout << "  Costing neighbourhood: " << std::endl;
     for (auto iter = neighbourhood_edge_indices.begin(); iter != neighbourhood_edge_indices.end(); ++iter) {
       auto join_cost = cost_join(current_root, *iter);
-      std::cout << "    " << (*iter) << ": " << join_cost << std::endl;
 
       if (join_cost < min_join_cost) {
         min_join_cost = join_cost;
@@ -79,14 +71,10 @@ std::shared_ptr<AbstractASTNode> GreedyJoinOrdering::run() {
       }
     }
 
-    std::cout << "  Next join edge " << next_join_edge_idx << std::endl;
-
     const auto& join_edge = _input_graph->edges()[next_join_edge_idx];
     const auto join_vertex_ids = order_edge_vertices(join_edge);
-    std::cout << "  Join vertex ids " << join_vertex_ids.first << " " << join_vertex_ids.second << std::endl;
 
     const auto join_column_ids = get_edge_column_ids(next_join_edge_idx, join_vertex_ids.second);
-    std::cout << "  JoinColumnIds: " << join_column_ids.first << " " << join_column_ids.second << std::endl;
 
     // Update the neighbourhood of the join plan with the new vertex
     const auto predicate_edge_indices = update_neighbourhood(neighbourhood_edge_indices, next_join_edge_idx);
@@ -144,8 +132,6 @@ std::vector<size_t> GreedyJoinOrdering::update_neighbourhood(std::set<size_t>& n
 
   auto vertex_ids = order_edge_vertices(join_edge);
 
-  std::cout << "Removing Edge " << join_edge_idx << " from neighbourhood" << std::endl;
-
   neighbourhood_edges.erase(join_edge_idx);
   _remaining_edge_indices.erase(join_edge_idx);
 
@@ -155,15 +141,11 @@ std::vector<size_t> GreedyJoinOrdering::update_neighbourhood(std::set<size_t>& n
 
     if (edge.vertex_indices.first == vertex_ids.second || edge.vertex_indices.second == vertex_ids.second) {
       predicate_edge_ids.emplace_back(edge_idx);
-      std::cout << "  Predicate Edge detected " << edge_idx << std::endl;
       neighbourhood_edges.erase(edge_idx);
     }
   }
 
   auto new_vertex_neighbourhood = extract_vertex_neighbourhood(vertex_ids.second);
-  std::cout << "New neighbourhood edges of vertex " << vertex_ids.second << std::endl;
-  for (auto e : new_vertex_neighbourhood) std::cout << "  " << e << ", ";
-  std::cout << std::endl;
   neighbourhood_edges.insert(new_vertex_neighbourhood.begin(), new_vertex_neighbourhood.end());
 
   return predicate_edge_ids;

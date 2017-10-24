@@ -36,8 +36,11 @@ class ProjectionNode : public AbstractASTNode {
 
  private:
   const std::vector<std::shared_ptr<Expression>> _column_expressions;
-  std::vector<ColumnID> _output_column_id_to_input_column_id;
-  std::vector<std::string> _output_column_names;
+
+  mutable std::vector<ColumnID> _output_column_id_to_input_column_id;
+  mutable std::vector<std::string> _output_column_names;
+
+  void _update_output() const;
 };
 
 }  // namespace opossum

@@ -51,7 +51,7 @@ void AbstractASTNode::set_left_child(const std::shared_ptr<AbstractASTNode>& lef
   _left_child = left;
   if (left) left->_parent = shared_from_this();
 
-  _on_child_changed();
+  _child_changed();
 }
 
 const std::shared_ptr<AbstractASTNode>& AbstractASTNode::right_child() const { return _right_child; }
@@ -62,7 +62,7 @@ void AbstractASTNode::set_right_child(const std::shared_ptr<AbstractASTNode>& ri
   _right_child = right;
   if (right) right->_parent = shared_from_this();
 
-  _on_child_changed();
+  _child_changed();
 }
 
 void AbstractASTNode::set_children(const std::shared_ptr<AbstractASTNode>& left,
@@ -270,6 +270,15 @@ std::string AbstractASTNode::get_verbose_column_name(ColumnID column_id) const {
   }
 
   return verbose_name;
+}
+
+void AbstractASTNode::_child_changed() {
+  _statistics.reset();
+  _on_child_changed();
+  auto parent = _parent.lock();
+  if (parent) {
+    parent->_child_changed();
+  }
 }
 
 std::optional<NamedColumnReference> AbstractASTNode::_resolve_local_alias(const NamedColumnReference& reference) const {

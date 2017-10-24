@@ -31,6 +31,9 @@ bool PredicateReorderingRule::apply_to(const std::shared_ptr<AbstractASTNode>& n
 
     // Sort PredicateNodes in descending order with regards to the expected row_count
     if (predicate_nodes.size() > 1) {
+      std::cout << "Reordering predicates in" << std::endl;
+      node->print();
+
       reordered = _reorder_predicates(predicate_nodes);
     }
     reordered |= _apply_to_children(predicate_nodes.back());

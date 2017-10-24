@@ -17,10 +17,16 @@ const Optimizer& Optimizer::get() {
 Optimizer::Optimizer() {
   _rules.emplace_back(std::make_shared<PredicateReorderingRule>());
   _rules.emplace_back(std::make_shared<JoinDetectionRule>());
-  //_rules.emplace_back(std::make_shared<JoinReorderingRule>());
+  _rules.emplace_back(std::make_shared<JoinReorderingRule>());
 }
 
 std::shared_ptr<AbstractASTNode> Optimizer::optimize(const std::shared_ptr<AbstractASTNode>& input) const {
+  if (_verbose) {
+    std::cout << "======== Optimizing =========" << std::endl;
+    input->print();
+    std::cout << "=============================" << std::endl;
+  }
+
   /**
    * Add explicit root node, so the rules can freely change the tree below it without having to maintain a root node
    * to return to the Optimizer
@@ -33,10 +39,20 @@ std::shared_ptr<AbstractASTNode> Optimizer::optimize(const std::shared_ptr<Abstr
    * iterations is reached
    */
   for (uint32_t iter_index = 0; iter_index < _max_num_iterations; ++iter_index) {
+    if (_verbose) {
+      std::cout << "====== Iteration " << iter_index << " ========" << std::endl;
+      input->print();
+      std::cout << "=============================" << std::endl;
+    }
     auto ast_changed = false;
 
     for (const auto& rule : _rules) {
       ast_changed |= rule->apply_to(root_node);
+      if (_verbose) {
+        std::cout << "====== After '" << rule->name() << "' ========" << std::endl;
+        root_node->left_child()->print();
+        std::cout << "=============================" << std::endl;
+      }
     }
 
     if (!ast_changed) break;
