@@ -21,22 +21,14 @@ namespace opossum {
 class TPCHTest : public ::testing::TestWithParam<size_t> {
  protected:
   void SetUp() override {
-    std::shared_ptr<Table> customer = load_table("src/test/tables/tpch/customer.tbl", 2);
-    std::shared_ptr<Table> lineitem = load_table("src/test/tables/tpch/lineitem.tbl", 2);
-    std::shared_ptr<Table> nation = load_table("src/test/tables/tpch/nation.tbl", 2);
-    std::shared_ptr<Table> orders = load_table("src/test/tables/tpch/orders.tbl", 2);
-    std::shared_ptr<Table> part = load_table("src/test/tables/tpch/part.tbl", 2);
-    std::shared_ptr<Table> partsupplier = load_table("src/test/tables/tpch/partsupplier.tbl", 2);
-    std::shared_ptr<Table> region = load_table("src/test/tables/tpch/region.tbl", 2);
-    std::shared_ptr<Table> supplier = load_table("src/test/tables/tpch/supplier.tbl", 2);
-    StorageManager::get().add_table("customer", std::move(customer));
-    StorageManager::get().add_table("lineitem", std::move(lineitem));
-    StorageManager::get().add_table("nation", std::move(nation));
-    StorageManager::get().add_table("orders", std::move(orders));
-    StorageManager::get().add_table("part", std::move(part));
-    StorageManager::get().add_table("partsupp", std::move(partsupplier));
-    StorageManager::get().add_table("region", std::move(region));
-    StorageManager::get().add_table("supplier", std::move(supplier));
+    StorageManager::get().add_table("customer", load_table("src/test/tables/tpch/customer.tbl", 2));
+    StorageManager::get().add_table("lineitem", load_table("src/test/tables/tpch/lineitem.tbl", 2));
+    StorageManager::get().add_table("nation", load_table("src/test/tables/tpch/nation.tbl", 2));
+    StorageManager::get().add_table("orders", load_table("src/test/tables/tpch/orders.tbl", 2));
+    StorageManager::get().add_table("part", load_table("src/test/tables/tpch/part.tbl", 2));
+    StorageManager::get().add_table("partsupp", load_table("src/test/tables/tpch/partsupplier.tbl", 2));
+    StorageManager::get().add_table("region", load_table("src/test/tables/tpch/region.tbl", 2));
+    StorageManager::get().add_table("supplier", load_table("src/test/tables/tpch/supplier.tbl", 2));
   }
 
   std::shared_ptr<AbstractOperator> translate_query_to_operator(const std::string query, bool optimize) {
