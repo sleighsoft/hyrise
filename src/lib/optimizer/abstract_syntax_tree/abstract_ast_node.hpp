@@ -95,8 +95,7 @@ class AbstractASTNode : public std::enable_shared_from_this<AbstractASTNode> {
   // @{
   /**
    * These functions are part of the "ColumnID Resolution". See SQLToAstTranslator class comment for a general
-   * discussion
-   * on this.
+   * discussion on this.
    *
    * AbstractASTNode::find_column_id_by_named_column_reference() looks for the @param named_column_reference in the
    * columns that this node outputs. If it can find it, the corresponding ColumnID will be returned, otherwise std::nullopt
@@ -176,10 +175,12 @@ class AbstractASTNode : public std::enable_shared_from_this<AbstractASTNode> {
 
   // @{
   /**
-   * Function for transforming the ColumnIDs referenced throughout the AST. Especially used for altering Join Plans
-   * in a way that introduces a new ordering of the columns.
-   * Call if `this` replaces a node with ColumnOrigins `prev_column_origins`.
-   * This will calculate a ColumnIDMapping and apply it recursively upwards. See _on_reorder_columns() for more info
+   * Function for transforming the ColumnIDs referenced throughout the AST. Especially used for when a JoinPlan is
+   * reordered and the order of its columns changes.
+   * Call if `this` is a subtree that replaced a node 'other' with ColumnOrigins `prev_column_origins`. Both 'this' and
+   * 'other' must contain the same columns, just in different order.
+   * This will calculate a ColumnIDMapping and apply _on_reorder_columns() recursively upwards.
+   * See _on_reorder_columns() for more info
    */
   void reorder_columns(const ColumnOrigins& prev_column_origins);
   // @}
