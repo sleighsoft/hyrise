@@ -7,6 +7,7 @@
 #include <string>
 #include <vector>
 
+#include "optimizer/abstract_syntax_tree/ast_types.hpp"
 #include "all_type_variant.hpp"
 #include "types.hpp"
 
@@ -160,7 +161,7 @@ class Expression : public std::enable_shared_from_this<Expression> {
    * When optimizer rules change column orders, this function is used to adapt the Expressions of AST nodes to the new
    * column order
    */
-  void reorder_columns(const std::vector<ColumnID> & column_id_mapping);
+  void map_column_ids(const ColumnIDMapping &column_id_mapping);
 
   bool operator==(const Expression& rhs) const;
 

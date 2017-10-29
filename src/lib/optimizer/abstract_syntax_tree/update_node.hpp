@@ -25,6 +25,9 @@ class UpdateNode : public AbstractASTNode {
  protected:
   const std::string _table_name;
   const std::vector<std::shared_ptr<Expression>> _column_expressions;
+
+  void map_column_ids(const ColumnIDMapping &column_id_mapping,
+                                   const std::optional<ASTChildSide> &caller_child_side = std::nullopt) override;
 };
 
 }  // namespace opossum

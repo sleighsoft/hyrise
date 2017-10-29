@@ -52,7 +52,7 @@ class TableStatisticsMock : public TableStatistics {
 class PredicateReorderingTest : public StrategyBaseTest {
  protected:
   void SetUp() override {
-    StorageManager::get().add_table("a", load_table("src/test/tables/int_float.tbl", 0));
+    StorageManager::get().add_table("a", load_table("src/test/tables/int_int_int.tbl", 0));
     _rule = std::make_shared<PredicateReorderingRule>();
   }
 
@@ -82,6 +82,10 @@ TEST_F(PredicateReorderingTest, SimpleReorderingTest) {
 
 TEST_F(PredicateReorderingTest, MoreComplexReorderingTest) {
   auto stored_table_node = std::make_shared<StoredTableNode>("a");
+
+  /**
+   * Build the AST predicate_node_2->predicate_node_1->predicate_node_0->stored_table_node
+   */
 
   auto statistics_mock = std::make_shared<TableStatisticsMock>();
   stored_table_node->set_statistics(statistics_mock);
@@ -157,7 +161,7 @@ TEST_F(PredicateReorderingTest, TwoReorderings) {
   auto predicate_node_1 = std::make_shared<PredicateNode>(ColumnID{1}, ScanType::OpGreaterThan, 50);
   predicate_node_1->set_left_child(predicate_node_0);
 
-  auto sort_node = std::make_shared<SortNode>(std::vector<OrderByDefinition>{{ColumnID{0}, OrderByMode::Ascending}});
+  auto sort_node = std::make_shared<SortNode>(OrderByDefinitions{{ColumnID{0}, OrderByMode::Ascending}});
   sort_node->set_left_child(predicate_node_1);
 
   auto predicate_node_2 = std::make_shared<PredicateNode>(ColumnID{2}, ScanType::OpGreaterThan, 90);

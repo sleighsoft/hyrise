@@ -141,7 +141,7 @@ ColumnIDMapping ast_generate_column_id_mapping(const ColumnOrigins &column_origi
   DebugAssert(column_origins_a.size() == column_origins_b.size(), "Params must be shuffled set of each other");
 
   ColumnIDMapping output_mapping(column_origins_a.size(), INVALID_COLUMN_ID);
-  std::map<ColumnOrigins, size_t> column_origin_to_input_idx;
+  std::map<ColumnOrigin, size_t> column_origin_to_input_idx;
 
   for (size_t column_idx = 0; column_idx < column_origins_a.size(); ++column_idx) {
     const auto result = column_origin_to_input_idx.emplace(column_origins_a[column_idx], column_idx);

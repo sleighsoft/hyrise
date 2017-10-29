@@ -202,7 +202,7 @@ const std::optional<ScanType>& JoinNode::scan_type() const { return _scan_type; 
 
 JoinMode JoinNode::join_mode() const { return _join_mode; }
 
-ColumnOrigins JoinNode::_get_column_origin(ColumnID column_id) const {
+ColumnOrigin JoinNode::get_column_origin(ColumnID column_id) const {
   DebugAssert(left_child() && right_child(), "Need both children to determine column origin");
   if (static_cast<size_t>(column_id) >= left_child()->output_col_count()) {
     const auto right_column_id = make_column_id(column_id - left_child()->output_col_count());
@@ -227,8 +227,8 @@ void JoinNode::_on_child_changed() {
   _output_column_id_to_input_column_id.clear();
 }
 
-void JoinNode::reorder_columns(const ColumnIDMapping &column_id_mapping,
-                                           const std::optional<ASTChildSide> &caller_child_side) {
+void JoinNode::map_column_ids(const ColumnIDMapping &column_id_mapping,
+                                   const std::optional<ASTChildSide> &caller_child_side) {
   DebugAssert(left_child() && right_child(), "Children need to be set for this operation");
   DebugAssert(caller_child_side, "JoinNode needs to know which childs column_id_mapping changed");
 
@@ -250,14 +250,17 @@ void JoinNode::reorder_columns(const ColumnIDMapping &column_id_mapping,
     std::iota(join_column_id_mapping.begin(),
               join_column_id_mapping.begin() + left_child()->output_col_count(),
               ColumnID{0});
-    std::copy(column_id_mapping.begin() + left_child()->output_col_count(),
-              column_id_mapping.end(),
-              join_column_id_mapping.begin());
+    const auto left_column_count = left_child()->output_col_count();
+    const auto join_column_count = output_col_count();
+
+    for (size_t join_column_idx = left_column_count; join_column_idx < join_column_count; ++join_column_idx) {
+      join_column_id_mapping[join_column_idx] = column_id_mapping[join_column_idx - left_column_count] + left_column_count;
+    }
   }
 
   auto parent = this->parent();
   if (parent) {
-    parent->reorder_columns(join_column_id_mapping, get_child_side());
+    parent->map_column_ids(join_column_id_mapping, get_child_side());
   }
 }
 

@@ -1,5 +1,12 @@
 #pragma once
 
+#include <optional>
+#include <string>
+#include <utility>
+#include <vector>
+
+#include "types.hpp"
+
 namespace opossum {
 
 enum class ASTNodeType {
@@ -28,6 +35,9 @@ struct NamedColumnReference {
 
   std::string as_string() const;
 };
+
+class AbstractASTNode;
+
 
 using ColumnOrigin = std::pair<std::shared_ptr<const AbstractASTNode>, ColumnID>;
 using ColumnOrigins = std::vector<ColumnOrigin>;

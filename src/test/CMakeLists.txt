@@ -46,8 +46,11 @@ set(
     optimizer/abstract_syntax_tree/ast_utils_test.cpp
     optimizer/abstract_syntax_tree/column_id_remapping_test.cpp
     optimizer/abstract_syntax_tree/join_node_test.cpp
-    optimizer/abstract_syntax_tree/stored_table_node_test.cpp
+    optimizer/abstract_syntax_tree/predicate_node_test.cpp
     optimizer/abstract_syntax_tree/projection_node_test.cpp
+    optimizer/abstract_syntax_tree/sort_node_test.cpp
+    optimizer/abstract_syntax_tree/stored_table_node_test.cpp
+    optimizer/abstract_syntax_tree/update_node_test.cpp
     optimizer/ast_to_operator_translator_test.cpp
     optimizer/column_statistics_test.cpp
     optimizer/strategy/join_detection_rule_test.cpp

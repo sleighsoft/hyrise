@@ -17,7 +17,7 @@ const Optimizer& Optimizer::get() {
 Optimizer::Optimizer() {
   _rules.emplace_back(std::make_shared<PredicateReorderingRule>());
   _rules.emplace_back(std::make_shared<JoinDetectionRule>());
-  _rules.emplace_back(std::make_shared<JoinReorderingRule>());
+  //_rules.emplace_back(std::make_shared<JoinReorderingRule>());
 }
 
 std::shared_ptr<AbstractASTNode> Optimizer::optimize(const std::shared_ptr<AbstractASTNode>& input) const {
