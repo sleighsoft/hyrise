@@ -175,39 +175,52 @@ class AbstractASTNode : public std::enable_shared_from_this<AbstractASTNode> {
 
   // @{
   /**
-   * Function for transforming the ColumnIDs referenced throughout the AST. Especially used for when a JoinPlan is
-   * reordered and the order of its columns changes.
-   * Call if `this` is a subtree that replaced a node 'other' that has the ColumnOrigins `prev_column_origins`.
-   * Both 'this' and 'other' must contain the same columns, just in different order.
-   * This will calculate a ColumnIDMapping and apply map_column_ids() recursively upwards.
-   * See map_column_ids() for more info
+   * Altering the order of Columns in a subtree.
+   *
+   * The order of Columns in a subtree might change, e.g., as the result of Join Re-Ordering. In this call all nodes
+   * above the root of the JoinTree need to adapt the ColumnIDs they refer to. Think, e.g. the ColumnIDs of a SortNode.
+   *
+   * In order to this:
+   *    1. Obtain the ColumnOrigins of the *old* root by calling get_column_origins() on it.
+   *    2. Hook in the *new* root.
+   *    3. Call dispatch_column_id_mapping() on the *new* root, passing the ColumnOrigins you obtained in step 1.
+   *
+   * dispatch_column_id_mapping() will
+   *    1. Generate a ColumnIDMapping
+   *    2. Pass this ColumnIDMapping upwards in the tree by calling map_column_ids()
+   *    3. Stop when either the root of the AST is reached OR a Aggregate- or ProjectionNode is reached
    */
 
   /**
-   * For all columns that this node outputs, find the node that originally "created" it, and the ColumnID in that node.
-   * Columns are "created" by Projections, Aggregates, StoredTables or MockTables, all other nodes just forward them.
+   * @returns {get_column_origin(ColumnID{0}), ..., get_column_origin(ColumnID{n-1})}
    */
   ColumnOrigins get_column_origins() const;
 
   /**
-   * JoinNode needs to override get_column_origin() all other nodes will default to forwarding this request to their
-   * left input, if the column wasn't created by this node.
+   * For all columns that this node outputs, find the node that originally "created" it, and the ColumnID it is in that
+   * node.
+   * Columns are "created" by Unions, Projections, Aggregates, StoredTables or MockTables, all other nodes just forward
+   * them.
+   *
+   * JoinNode needs to override get_column_origin() - all other nodes will default to forwarding this request to their
+   * left input, *if the column wasn't created by this node*
    */
   virtual ColumnOrigin get_column_origin(ColumnID column_id) const;
 
+  /**
+   * See "Altering the order of Columns in a subtree" comment above.
+   *
+   * NOTE: Call this on the node whose Column order changed, NOT on its parent.
+   */
   void dispatch_column_id_mapping(const ColumnOrigins &prev_column_origins);
 
   /**
-   * When a node changes the order of its columns (e.g. in an optimizer rule), the AST has to adapt to it recursively
-   * upwards. Recursion stops at Projections and Aggregations and needs special handling in all nodes that refer to
-   * ColumnIDs (e.g. Predicate, Sort, Join).
-   * map_column_ids() calls the virtual map_column_ids() which has to call map_column_ids() on the nodes
-   * parent, if it is necessary for this node type
-   *
-   * @param caller_child_side only relevant for JoinNodes, can be ignored for all other node types
+   * Overriden by Nodes who need to update ColumnIDs.
+   * Overrides need to call map_column_ids() on their parents if the node doesn't define a new Column order (as
+   * Projections and Aggregates do).
    */
   virtual void map_column_ids(const ColumnIDMapping &column_id_mapping,
-                      const std::optional<ASTChildSide> &caller_child_side = std::nullopt);
+                              const std::optional<ASTChildSide> &caller_child_side = std::nullopt);
   // @}
 
   // @{
