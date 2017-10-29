@@ -149,7 +149,7 @@ TEST_F(ColumnIDRemappingTest, Basic) {
   EXPECT_EQ(column_origins_b[5], ColumnOrigin(_table_a, ColumnID{1}));
 
   predicate->set_left_child(join_plan_b);
-  join_plan_b->map_column_ids_from_previous_column_origins(column_origins_a);
+  join_plan_b->dispatch_column_id_mapping(column_origins_a);
 
   EXPECT_EQ(predicate->column_id(), ColumnID{5});
   EXPECT_EQ(boost::get<ColumnID>(predicate->value()), ColumnID{1});

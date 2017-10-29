@@ -195,7 +195,7 @@ class AbstractASTNode : public std::enable_shared_from_this<AbstractASTNode> {
    */
   virtual ColumnOrigin get_column_origin(ColumnID column_id) const;
 
-  void map_column_ids_from_previous_column_origins(const ColumnOrigins &prev_column_origins);
+  void dispatch_column_id_mapping(const ColumnOrigins &prev_column_origins);
 
   /**
    * When a node changes the order of its columns (e.g. in an optimizer rule), the AST has to adapt to it recursively

@@ -244,7 +244,7 @@ ColumnOrigin AbstractASTNode::get_column_origin(ColumnID column_id) const {
   return left_child()->get_column_origin(input_column_id);
 }
 
-void AbstractASTNode::map_column_ids_from_previous_column_origins(const ColumnOrigins &prev_column_origins) {
+void AbstractASTNode::dispatch_column_id_mapping(const ColumnOrigins &prev_column_origins) {
   const auto post_ordering_column_origins = get_column_origins();
   const auto column_id_mapping = ast_generate_column_id_mapping(prev_column_origins,
                                                                 get_column_origins());
