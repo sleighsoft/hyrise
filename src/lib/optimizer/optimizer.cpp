@@ -4,6 +4,7 @@
 
 #include "abstract_syntax_tree/ast_root_node.hpp"
 #include "strategy/join_detection_rule.hpp"
+#include "strategy/join_ordering_rule.hpp"
 #include "strategy/predicate_reordering_rule.hpp"
 
 namespace opossum {
@@ -16,6 +17,7 @@ const Optimizer& Optimizer::get() {
 Optimizer::Optimizer() {
   _rules.emplace_back(std::make_shared<PredicateReorderingRule>());
   _rules.emplace_back(std::make_shared<JoinDetectionRule>());
+  _rules.emplace_back(std::make_shared<JoinOrderingRule>());
 }
 
 std::shared_ptr<AbstractASTNode> Optimizer::optimize(const std::shared_ptr<AbstractASTNode>& input) const {
