@@ -109,8 +109,6 @@ std::shared_ptr<AbstractASTNode> GreedyJoinOrdering::run() {
     const auto& join_edge = _input_graph->edges()[next_join_edge_idx];
     const auto join_vertex_ids = _order_edge_vertices(join_edge);
 
-    const auto join_column_ids = _get_edge_column_ids(next_join_edge_idx, join_vertex_ids.second);
-
     // Update the neighbourhood of the join plan with the new vertex
     const auto predicate_edge_indices = _update_neighbourhood(neighbourhood_edge_indices, next_join_edge_idx);
 
@@ -122,6 +120,7 @@ std::shared_ptr<AbstractASTNode> GreedyJoinOrdering::run() {
     std::shared_ptr<JoinNode> new_root;
 
     if (join_edge.join_mode == JoinMode::Inner) {
+      const auto join_column_ids = _get_edge_column_ids(next_join_edge_idx, join_vertex_ids.second);
       new_root = std::make_shared<JoinNode>(JoinMode::Inner, join_column_ids, *join_edge.scan_type);
     } else {
       DebugAssert(join_edge.join_mode == JoinMode::Cross, "Bug. Expected CrossJoin here");
@@ -195,9 +194,9 @@ float GreedyJoinOrdering::_cost_join(const std::shared_ptr<AbstractASTNode>& lef
 
   const auto vertex_ids = _order_edge_vertices(edge);
   const auto& new_vertex = _input_graph->vertices()[vertex_ids.second];
-  const auto join_column_ids = _get_edge_column_ids(edge_idx, vertex_ids.second);
 
   if (edge.join_mode == JoinMode::Inner) {
+    const auto join_column_ids = _get_edge_column_ids(edge_idx, vertex_ids.second);
     const auto join_stats = left_node->get_statistics()->generate_predicated_join_statistics(
     new_vertex->get_statistics(), JoinMode::Inner, join_column_ids, *edge.scan_type);
     return join_stats->row_count();
