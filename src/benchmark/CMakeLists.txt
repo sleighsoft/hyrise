@@ -43,3 +43,6 @@ target_link_libraries(
     hyriseBenchmarkLib
     benchmark
 )
+
+add_executable(hyriseBenchmarkTPCH benchmark_main.cpp tpch_benchmark.cpp)
+target_link_libraries(hyriseBenchmarkTPCH hyrise hyriseBenchmarkLib benchmark)

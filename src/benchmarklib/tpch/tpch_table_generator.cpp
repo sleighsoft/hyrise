@@ -385,15 +385,26 @@ std::shared_ptr<opossum::Table> TpchTableGenerator::generate_regions_table() {
 }
 
 std::map<std::string, std::shared_ptr<opossum::Table>> TpchTableGenerator::generate_all_tables() {
+  std::cout << "TpchTableGenerator: Generating Tables:" << std::endl;
+  std::cout << "TpchTableGenerator:   Suppliers" << std::endl;
   auto supplier_table = generate_suppliers_table();
+  std::cout << "TpchTableGenerator:   Parts" << std::endl;
   auto parts_table = generate_parts_table();
+  std::cout << "TpchTableGenerator:   PartSuppliers" << std::endl;
   auto partsupps_table = generate_partsupps_table();
+  std::cout << "TpchTableGenerator:   Customers" << std::endl;
   auto customers_table = generate_customers_table();
+  std::cout << "TpchTableGenerator:   Order" << std::endl;
   auto order_lines = generate_order_lines();
+  std::cout << "TpchTableGenerator:   Orders" << std::endl;
   auto orders_table = generate_orders_table(order_lines);
+  std::cout << "TpchTableGenerator:   LineItems" << std::endl;
   auto lineitems_table = generate_lineitems_table(order_lines);
+  std::cout << "TpchTableGenerator:   Nations" << std::endl;
   auto nations_table = generate_nations_table();
+  std::cout << "TpchTableGenerator:   Regions" << std::endl;
   auto regions_table = generate_regions_table();
+  std::cout << "TpchTableGenerator:   Done!" << std::endl;
 
   return std::map<std::string, std::shared_ptr<opossum::Table>>({{"SUPPLIER", std::move(supplier_table)},
                                                                  {"PART", std::move(parts_table)},
