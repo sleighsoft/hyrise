@@ -309,7 +309,7 @@ TEST_F(PredicateReorderingTest, PredicatesWithMultipleParents) {
   auto union_node = std::make_shared<UnionNode>(UnionMode::Positions);
   auto predicate_a_node = std::make_shared<PredicateNode>(ColumnID{0}, ScanType::OpGreaterThan, 90);
   auto predicate_b_node = std::make_shared<PredicateNode>(ColumnID{0}, ScanType::OpGreaterThan, 10);
-  auto table_node = std::make_shared<MockNode>(table_statistics);
+  auto table_node = std::make_shared<MockNode>(table_statistics, "table");
 
   union_node->set_left_child(predicate_a_node);
   union_node->set_right_child(predicate_b_node);
