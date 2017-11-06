@@ -26,22 +26,14 @@
 #include "SQLParserResult.h"
 
 int main() {
-  std::shared_ptr<opossum::Table> customer = opossum::load_table("src/test/tables/tpch/customer.tbl", 2);
-  std::shared_ptr<opossum::Table> lineitem = opossum::load_table("src/test/tables/tpch/lineitem.tbl", 2);
-  std::shared_ptr<opossum::Table> nation = opossum::load_table("src/test/tables/tpch/nation.tbl", 2);
-  std::shared_ptr<opossum::Table> orders = opossum::load_table("src/test/tables/tpch/orders.tbl", 2);
-  std::shared_ptr<opossum::Table> part = opossum::load_table("src/test/tables/tpch/part.tbl", 2);
-  std::shared_ptr<opossum::Table> partsupplier = opossum::load_table("src/test/tables/tpch/partsupplier.tbl", 2);
-  std::shared_ptr<opossum::Table> region = opossum::load_table("src/test/tables/tpch/region.tbl", 2);
-  std::shared_ptr<opossum::Table> supplier = opossum::load_table("src/test/tables/tpch/supplier.tbl", 2);
-  opossum::StorageManager::get().add_table("customer", std::move(customer));
-  opossum::StorageManager::get().add_table("lineitem", std::move(lineitem));
-  opossum::StorageManager::get().add_table("nation", std::move(nation));
-  opossum::StorageManager::get().add_table("orders", std::move(orders));
-  opossum::StorageManager::get().add_table("part", std::move(part));
-  opossum::StorageManager::get().add_table("partsupp", std::move(partsupplier));
-  opossum::StorageManager::get().add_table("region", std::move(region));
-  opossum::StorageManager::get().add_table("supplier", std::move(supplier));
+  opossum::StorageManager::get().add_table("customer", opossum::load_table("src/test/tables/tpch/customer.tbl", 2));
+  opossum::StorageManager::get().add_table("lineitem", opossum::load_table("src/test/tables/tpch/lineitem.tbl", 2));
+  opossum::StorageManager::get().add_table("nation", opossum::load_table("src/test/tables/tpch/nation.tbl", 2));
+  opossum::StorageManager::get().add_table("orders", opossum::load_table("src/test/tables/tpch/orders.tbl", 2));
+  opossum::StorageManager::get().add_table("part", opossum::load_table("src/test/tables/tpch/part.tbl", 2));
+  opossum::StorageManager::get().add_table("partsupp", opossum::load_table("src/test/tables/tpch/partsupplier.tbl", 2));
+  opossum::StorageManager::get().add_table("region", opossum::load_table("src/test/tables/tpch/region.tbl", 2));
+  opossum::StorageManager::get().add_table("supplier", opossum::load_table("src/test/tables/tpch/supplier.tbl", 2));
 
   const auto query = std::string(opossum::tpch_queries[6]);
 
@@ -69,8 +61,6 @@ int main() {
   auto astopt = opossum::Optimizer::get().optimize(ast[0]);
   opossum::ASTVisualizer(config).visualize({astopt}, "visopt");
   astopt->print();
-
-
 
   return 0;
 }
