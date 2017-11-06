@@ -33,6 +33,8 @@ class UnionNode : public AbstractASTNode {
 
   std::vector<ColumnID> get_output_column_ids_for_table(const std::string& table_name) const override;
 
+  void map_column_ids(const ColumnIDMapping& column_id_mapping, ASTChildSide caller_child_side) override;
+
  private:
   UnionMode _union_mode;
 };

@@ -35,7 +35,7 @@ int main() {
   opossum::StorageManager::get().add_table("region", opossum::load_table("src/test/tables/tpch/region.tbl", 2));
   opossum::StorageManager::get().add_table("supplier", opossum::load_table("src/test/tables/tpch/supplier.tbl", 2));
 
-  const auto query = std::string(opossum::tpch_queries[6]);
+  const auto query = std::string(opossum::tpch_queries[2]);
 
  // const auto query = R"(SELECT * FROM supplier, lineitem WHERE s_suppkey = l_suppkey AND s_name = 'Hans' ;)";
 

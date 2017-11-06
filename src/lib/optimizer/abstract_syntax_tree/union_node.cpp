@@ -77,4 +77,8 @@ std::vector<ColumnID> UnionNode::get_output_column_ids_for_table(const std::stri
   return {};
 }
 
+void UnionNode::map_column_ids(const ColumnIDMapping& column_id_mapping, ASTChildSide caller_child_side) {
+  _propagate_column_id_mapping_to_parents(column_id_mapping);
+}
+
 }  // namespace opossum
