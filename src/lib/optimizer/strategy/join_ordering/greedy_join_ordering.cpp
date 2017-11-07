@@ -107,6 +107,8 @@ std::shared_ptr<AbstractASTNode> GreedyJoinOrdering::run() {
      */
     const auto& join_edge = _input_graph->edges()[next_join_edge_idx];
     const auto join_vertex_ids = _order_edge_vertices(join_edge);
+    const auto& next_vertex = _input_graph->vertices()[join_vertex_ids.second];
+//    const auto left_subtree_column_count = current_root->output_column_count();
 
     // Update the neighbourhood of the join plan with the new vertex
     const auto predicate_edge_indices = _update_neighbourhood(neighbourhood_edge_indices, next_join_edge_idx);
@@ -128,7 +130,7 @@ std::shared_ptr<AbstractASTNode> GreedyJoinOrdering::run() {
     }
 
     new_root->set_left_child(current_root);
-    new_root->set_right_child(_input_graph->vertices()[join_vertex_ids.second].node);
+    new_root->set_right_child(next_vertex.node);
     current_root = new_root;
 
     /**
@@ -153,6 +155,17 @@ std::shared_ptr<AbstractASTNode> GreedyJoinOrdering::run() {
       new_root->set_left_child(current_root);
       current_root = new_root;
     }
+
+    /**
+     * GreedyJoinOrdering III.5
+     *      Append the Vertex' Predicates
+     */
+    for (const auto& predicate : next_vertex.predicates) {
+      auto new_root = std::make_shared<PredicateNode>(make_column_id(predicate.column_id +_left_column_id_of_vertex[join_vertex_ids.second]), predicate.scan_type, predicate.value);
+      new_root->set_left_child(current_root);
+      current_root = new_root;
+    }
+
   }
 
   return current_root;

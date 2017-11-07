@@ -46,11 +46,11 @@ void JoinGraphVisualizer::visualize(const std::shared_ptr<JoinGraph> &join_graph
     /**
      * Create a "record" layout for the VertexPredicates
      */
-    file << reinterpret_cast<uintptr_t>(&join_vertex) << "[label=\"{" << label;
+    file << reinterpret_cast<uintptr_t>(&join_vertex) << "[label=\"{" << _escape_label(label);
     if (!predicate_descriptions.empty()) {
       file << " | { Predicates | {";
       for (size_t description_idx = 0; description_idx < predicate_descriptions.size(); ++description_idx) {
-        file << predicate_descriptions[description_idx];
+        file << _escape_label(predicate_descriptions[description_idx]);
         if (description_idx + 1 < predicate_descriptions.size()) {
           file << " | ";
         }

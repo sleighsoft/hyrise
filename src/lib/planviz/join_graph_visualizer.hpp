@@ -3,13 +3,14 @@
 #include <memory>
 #include <string>
 
+#include "base_visualizer.hpp"
 #include "dot_config.hpp"
 
 namespace opossum {
 
 class JoinGraph;
 
-class JoinGraphVisualizer {
+class JoinGraphVisualizer : public BaseVisualizer  {
  public:
   explicit JoinGraphVisualizer(const DotConfig& config = {});
 

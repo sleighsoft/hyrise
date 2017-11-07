@@ -164,6 +164,8 @@ set(
     optimizer/table_statistics.hpp
     planviz/ast_visualizer.cpp
     planviz/ast_visualizer.hpp
+    planviz/base_visualizer.cpp
+    planviz/base_visualizer.hpp
     planviz/graphviz_tools.cpp
     planviz/graphviz_tools.hpp
     planviz/dot_config.cpp
