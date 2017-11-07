@@ -30,6 +30,9 @@ std::string StoredTableNode::description(DescriptionMode mode) const {
     desc += " AS " + *_table_alias;
   }
 
+  auto table = StorageManager::get().get_table(_table_name);
+  desc += ", " + std::to_string(table->row_count()) + " rows";
+
   return desc;
 }
 
