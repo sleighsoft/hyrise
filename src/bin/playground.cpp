@@ -65,6 +65,8 @@ int main() {
       ORDER BY
           supp_nation, cust_nation, l_year;)";
 
+//  auto simple_query = "SELECT o_orderkey FROM customer, orders WHERE c_custkey = o_custkey;";
+
   hsql::SQLParserResult parser_result;
   hsql::SQLParser::parse(modded_query, &parser_result);
 
@@ -83,8 +85,6 @@ int main() {
       opossum::JoinGraphVisualizer(config).visualize(join_graphs[join_graph_idx], "join_graph" + std::to_string(join_graph_idx));
     }
   }
-  std::cout << "Before Opt:" << std::endl;
-  join_graphs[0]->print();
 
   auto astopt = opossum::Optimizer::get().optimize(ast[0]);
   opossum::ASTVisualizer(config).visualize({astopt}, "astopt");
