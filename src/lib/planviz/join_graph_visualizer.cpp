@@ -16,7 +16,7 @@ JoinGraphVisualizer::JoinGraphVisualizer(const DotConfig &config): _config(confi
 
 }
 
-void JoinGraphVisualizer::visualize(const std::shared_ptr<JoinGraph> &join_graph,
+void JoinGraphVisualizer::visualize(const std::shared_ptr<const JoinGraph> &join_graph,
                                     const std::string &output_prefix) {
   std::ofstream file;
   file.open(output_prefix + ".dot");

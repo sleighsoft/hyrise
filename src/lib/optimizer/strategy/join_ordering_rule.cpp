@@ -18,6 +18,13 @@ std::string JoinOrderingRule::name() const {
 }
 
 bool JoinOrderingRule::apply_to(const std::shared_ptr<AbstractASTNode>& node) {
+  auto join_graph = JoinGraphBuilder().build_join_graph(node);
+
+  // Nothing to order
+  if (join_graph->vertices().size() <= 1) {
+    return _apply_to_children(node);
+  }
+
   /**
    * Identify parent and child_side. Later we will re-attach the newly ordered join plan to `parent` as the `child_side`
    * child.
@@ -25,18 +32,7 @@ bool JoinOrderingRule::apply_to(const std::shared_ptr<AbstractASTNode>& node) {
   auto parents = node->parents();
   auto child_sides = node->get_child_sides();
 
-  /**
-   * Without further safety measures (making sure a node doesn't receive a column mapping multiple times)
-   * we can't apply the ordering to nodes with multiple parents
-   */
   if (parents.size() > 1) {
-    return _apply_to_children(node);
-  }
-
-  auto join_graph = JoinGraphBuilder().build_join_graph(node);
-
-  // Nothing to order
-  if (join_graph->vertices().size() <= 1) {
     return _apply_to_children(node);
   }
 

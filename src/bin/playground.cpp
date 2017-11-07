@@ -50,6 +50,8 @@ int main() {
           FROM
                 supplier, lineitem, orders, customer, nation n1, nation n2
           WHERE
+                s_acctbal > 1000 AND s_acctbal < 2000 AND
+
                 s_suppkey = l_suppkey AND
                 o_orderkey = l_orderkey AND
                 c_custkey = o_custkey AND
@@ -72,19 +74,20 @@ int main() {
 
   auto ast = opossum::SQLToASTTranslator(false).translate_parse_result(parser_result);
   opossum::ASTVisualizer(config).visualize(ast, "ast");
-  ast[0]->print();
 
   auto join_graphs = opossum::JoinGraphBuilder::build_all_join_graphs(ast[0]);
 
   if (!join_graphs.empty()) {
     for (size_t join_graph_idx = 0; join_graph_idx < join_graphs.size(); ++join_graph_idx) {
+      join_graphs[join_graph_idx]->print();
       opossum::JoinGraphVisualizer(config).visualize(join_graphs[join_graph_idx], "join_graph" + std::to_string(join_graph_idx));
     }
   }
+  std::cout << "Before Opt:" << std::endl;
+  join_graphs[0]->print();
 
   auto astopt = opossum::Optimizer::get().optimize(ast[0]);
   opossum::ASTVisualizer(config).visualize({astopt}, "astopt");
-  astopt->print();
 
   return 0;
 }

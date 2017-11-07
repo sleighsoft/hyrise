@@ -11,6 +11,7 @@
 #include "optimizer/abstract_syntax_tree/join_node.hpp"
 #include "optimizer/abstract_syntax_tree/predicate_node.hpp"
 #include "optimizer/abstract_syntax_tree/stored_table_node.hpp"
+#include "optimizer/join_graph_builder.hpp"
 #include "types.hpp"
 #include "utils/assert.hpp"
 

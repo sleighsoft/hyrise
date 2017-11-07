@@ -29,7 +29,12 @@ class GreedyJoinOrdering {
   std::shared_ptr<AbstractASTNode> run();
 
  private:
-  std::shared_ptr<const JoinGraph> _input_graph;
+  const std::shared_ptr<const JoinGraph> _input_graph;
+
+  /**
+   * When building the JoinPlan, this is the root of the tree in its current state
+   */
+  std::shared_ptr<AbstractASTNode> _current_root;
 
   /**
    * At index `i`, contains the ColumnID that is the leftmost column of vertex with id `i` in the output of the current
@@ -78,5 +83,10 @@ class GreedyJoinOrdering {
    * @returns (Index of new vertex, Index of vertex already in JoinPlan)
    */
   std::pair<JoinVertexID, JoinVertexID> _order_edge_vertices(const JoinEdge& edge) const;
+
+  /**
+   * Add all the vertex predicates at the top of the plan.
+   */
+  void _emit_vertex_predicates(JoinVertexID vertex_id);
 };
 }  // namespace opossum
