@@ -28,7 +28,10 @@ std::shared_ptr<Table> TableGenerator::generate_table(const ChunkID chunk_size, 
   for (size_t i = 0; i < _num_columns; i++) {
     auto column_name = std::string(1, static_cast<char>(static_cast<int>('a') + i));
     table->add_column_definition(column_name, "int");
-    value_vectors.emplace_back(tbb::concurrent_vector<int>(vector_size));
+
+    tbb::concurrent_vector<int> values;
+    values.reserve(vector_size);
+    value_vectors.push_back(std::move(values));
   }
   auto chunk = Chunk();
   std::default_random_engine engine;
@@ -41,7 +44,8 @@ std::shared_ptr<Table> TableGenerator::generate_table(const ChunkID chunk_size, 
     if (i % vector_size == 0 && i > 0) {
       for (size_t j = 0; j < _num_columns; j++) {
         chunk.add_column(std::make_shared<ValueColumn<int>>(std::move(value_vectors[j])));
-        value_vectors[j] = tbb::concurrent_vector<int>(vector_size);
+        value_vectors[j] = tbb::concurrent_vector<int>();
+        value_vectors[j].reserve(vector_size);
       }
       table->emplace_chunk(std::move(chunk));
       chunk = Chunk();
@@ -50,7 +54,7 @@ std::shared_ptr<Table> TableGenerator::generate_table(const ChunkID chunk_size, 
      * Set random value for every column.
      */
     for (size_t j = 0; j < _num_columns; j++) {
-      value_vectors[j][i % vector_size] = dist(engine);
+      value_vectors[j].emplace_back(dist(engine));
     }
   }
   /*
