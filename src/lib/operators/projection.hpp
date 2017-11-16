@@ -11,6 +11,7 @@
 #include <vector>
 
 #include "abstract_read_only_operator.hpp"
+#include "boost/variant.hpp"
 #include "optimizer/expression.hpp"
 #include "storage/chunk.hpp"
 #include "storage/dictionary_column.hpp"
@@ -19,8 +20,33 @@
 
 namespace opossum {
 
+enum class ProjectionBinaryOp {
+  Plus, Minus,
+};
+
+struct ArithmeticProjectionDefinition {
+  ColumnID left = INVALID_COLUMN_ID;
+  ColumnID right = INVALID_COLUMN_ID;
+  ProjectionArithmetic
+};
+
+template<typename T>
+struct CaseDefinition {
+  using Result = boost::variant<ColumnID, T>;
+
+  struct Branch {
+    ColumnID when_column = INVALID_COLUMN_ID;
+    Result then_expr;
+  };
+
+  std::optional<Result> else_expr;
+
+  std::vector<Branch> branches;
+};
+
+
 /**
- * Operator to select a subset of the set of all columns found in the table
+ * Operator to select subsets of columns in any order and to perform arithmetic operations on them.
  *
  * Note: Projection does not support null values at the moment
  */
@@ -59,7 +85,7 @@ class Projection : public AbstractReadOnlyOperator {
   ColumnExpressions _column_expressions;
 
   template <typename T>
-  static void _create_column(boost::hana::basic_type<T> type, Chunk& chunk, const ChunkID chunk_id,
+  static void _create_column(boost::hana::basic_type<T> type, Chunk& o_chunk, const ChunkID chunk_id,
                              const std::shared_ptr<Expression>& expression,
                              std::shared_ptr<const Table> input_table_left);
 
