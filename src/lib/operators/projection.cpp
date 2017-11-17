@@ -13,15 +13,29 @@
 
 namespace opossum {
 
-Projection::Projection(const std::shared_ptr<const AbstractOperator> in, const ColumnExpressions& column_expressions)
-    : AbstractReadOnlyOperator(in), _column_expressions(column_expressions) {}
+std::string CaseDefinition::to_string() const {
+  return "case"; // TODO(moritz)
+}
+
+ProjectionColumnDefinition::ProjectionColumnDefinition(const std::shared_ptr<Expression> & expression,
+                                                       std::optional<std::string> & alias): value(expression), alias(alias) {
+
+}
+
+ProjectionColumnDefinition::ProjectionColumnDefinition(const CaseDefinition & case_definition,
+                                                       std::optional<std::string> & alias): value(case_definition), alias(alias) {
+
+}
+
+Projection::Projection(const std::shared_ptr<const AbstractOperator> in, const ProjectionColumnDefinitions& column_definitions)
+    : AbstractReadOnlyOperator(in), _column_definitions(column_definitions) {}
 
 const std::string Projection::name() const { return "Projection"; }
 
-const Projection::ColumnExpressions& Projection::column_expressions() const { return _column_expressions; }
+const ProjectionColumnDefinitions& Projection::column_definitions() const { return _column_definitions; }
 
 std::shared_ptr<AbstractOperator> Projection::recreate(const std::vector<AllParameterVariant>& args) const {
-  return std::make_shared<Projection>(_input_left->recreate(args), _column_expressions);
+  return std::make_shared<Projection>(_input_left->recreate(args), _column_definitions);
 }
 
 template <typename T>
@@ -67,26 +81,71 @@ std::shared_ptr<const Table> Projection::_on_execute() {
   /**
    * Create the layout (column names and types) of the output table
    */
-  for (const auto& column_expression : _column_expressions) {
+  for (const auto& column_definition : _column_definitions) {
+    /**
+     * Determine the column name
+     */
     std::string column_name;
-
-    if (column_expression->alias()) {
-      column_name = *column_expression->alias();
-    } else if (column_expression->type() == ExpressionType::Column) {
-      column_name = _input_table_left()->column_name(column_expression->column_id());
-    } else if (column_expression->is_arithmetic_operator() || column_expression->type() == ExpressionType::Literal) {
-      column_name = column_expression->to_string(_input_table_left()->column_names());
+    if (column_definition.alias) {
+      column_name = *column_definition.alias;
     } else {
-      Fail("Expression type is not supported.");
+      if (column_definition.value.type() == typeid(std::shared_ptr<Expression>)) {
+        const auto & expression = boost::get<std::shared_ptr<Expression>>(column_definition.value);
+
+        if (expression->type() == ExpressionType::Column) {
+          column_name = _input_table_left()->column_name(expression->column_id());
+        } else if (expression->is_arithmetic_operator() || expression->type() == ExpressionType::Literal) {
+          column_name = expression->to_string(_input_table_left()->column_names());
+        } else {
+          Fail("Expression type is not supported.");
+        }
+      } else if (column_definition.value.type() == typeid(CaseDefinition)) {
+        const auto & case_definition = boost::get<CaseDefinition>(column_definition.value);
+        column_name = case_definition.to_string();
+      } else {
+        Fail("Invalid variant");
+      }
     }
 
-    if (column_expression->is_null_literal()) {
-      // in case of a NULL literal, simply add a nullable int column
-      output->add_column_definition(column_name, "int", true);
-    } else {
-      const auto type = _get_type_of_expression(column_expression, _input_table_left());
-      output->add_column_definition(column_name, type);
+    /**
+     * Determine column type and nullable
+     */
+    std::string column_type;
+    std::string column_nullable;
+    if (column_definition.value.type() == typeid(std::shared_ptr<Expression>)) {
+      const auto & expression = boost::get<std::shared_ptr<Expression>>(column_definition.value);
+      if (expression->is_null_literal()) {
+        // in case of a NULL literal, simply add a nullable int column
+        column_type = "int";
+      } else {
+        column_nullable = _get_type_of_expression(expression, _input_table_left());
+      }
     }
+
+    struct ColumnTypeVisitor {
+      std::shared_ptr<Projection> projection;
+
+      std::string operator()(const std::shared_ptr<Expression> & expression) const {
+        if (expression->is_null_literal()) {
+          // in case of a NULL literal, simply add a nullable int column
+          return "int";
+        } else {
+          return projection->_get_type_of_expression(expression, projection->_input_table_left());
+        }
+      }
+
+      std::string operator()(const std::shared_ptr<BaseCaseDefinition> & case_definition) {
+        return case_definition->type();
+      }
+    };
+    const auto column_type_and_nullable = boost::apply_visitor(ColumnTypeVisitor{shared_from_this()}, column_definition.value);
+    const auto & column_type = column_type_and_nullable.first;
+    const auto & column_nullable = column_type_and_nullable.second;
+
+    /**
+     * Add the column
+     */
+    output->add_column_definition(column_name, column_type, column_nullable);
   }
 
   /**

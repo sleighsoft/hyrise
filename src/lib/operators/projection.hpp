@@ -20,30 +20,27 @@
 
 namespace opossum {
 
-enum class ProjectionBinaryOp {
-  Plus, Minus,
-};
-
-struct ArithmeticProjectionDefinition {
-  ColumnID left = INVALID_COLUMN_ID;
-  ColumnID right = INVALID_COLUMN_ID;
-  ProjectionArithmetic
-};
-
-template<typename T>
 struct CaseDefinition {
-  using Result = boost::variant<ColumnID, T>;
-
-  struct Branch {
-    ColumnID when_column = INVALID_COLUMN_ID;
-    Result then_expr;
+  struct When {
+    ColumnID condition_column = INVALID_COLUMN_ID;
+    AllParameterVariant then_value;
   };
 
-  std::optional<Result> else_expr;
+  std::vector<When> whens;
+  std::optional<AllParameterVariant> else_value;
 
-  std::vector<Branch> branches;
+  std::string to_string() const;
 };
 
+struct ProjectionColumnDefinition final {
+  ProjectionColumnDefinition(const std::shared_ptr<Expression> & expression, std::optional<std::string> & alias = std::nullopt);
+  ProjectionColumnDefinition(const CaseDefinition & expression, std::optional<std::string> & alias = std::nullopt);
+
+  boost::variant<std::shared_ptr<Expression>, CaseDefinition> value;
+  std::optional<std::string> alias;
+};
+
+using ProjectionColumnDefinitions = std::vector<ProjectionColumnDefinition>;
 
 /**
  * Operator to select subsets of columns in any order and to perform arithmetic operations on them.
@@ -52,13 +49,11 @@ struct CaseDefinition {
  */
 class Projection : public AbstractReadOnlyOperator {
  public:
-  using ColumnExpressions = std::vector<std::shared_ptr<Expression>>;
-
-  Projection(const std::shared_ptr<const AbstractOperator> in, const ColumnExpressions& column_expressions);
+  Projection(const std::shared_ptr<const AbstractOperator> in, const ProjectionColumnDefinitions& column_expressions);
 
   const std::string name() const override;
 
-  const ColumnExpressions& column_expressions() const;
+  const ProjectionColumnDefinitions& column_definitions() const;
 
   std::shared_ptr<AbstractOperator> recreate(const std::vector<AllParameterVariant>& args) const override;
 
@@ -82,7 +77,7 @@ class Projection : public AbstractReadOnlyOperator {
   static std::shared_ptr<Table> dummy_table();
 
  protected:
-  ColumnExpressions _column_expressions;
+  ProjectionColumnDefinitions _column_definitions;
 
   template <typename T>
   static void _create_column(boost::hana::basic_type<T> type, Chunk& o_chunk, const ChunkID chunk_id,
