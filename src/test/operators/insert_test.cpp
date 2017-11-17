@@ -219,7 +219,7 @@ TEST_F(OperatorsInsertTest, InsertSingleNullFromDummyProjection) {
   auto dummy_wrapper = std::make_shared<TableWrapper>(Projection::dummy_table());
   dummy_wrapper->execute();
 
-  auto literal = Projection::ColumnExpressions{Expression::create_literal(NullValue{})};
+  auto literal = ProjectionColumnDefinitions{Expression::create_literal(NullValue{})};
   auto projection = std::make_shared<Projection>(dummy_wrapper, literal);
   projection->execute();
 

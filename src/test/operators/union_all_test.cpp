@@ -43,7 +43,7 @@ TEST_F(OperatorsUnionAllTest, UnionOfValueReferenceTables) {
 
   auto projection = std::make_shared<Projection>(
       _table_wrapper_a,
-      Projection::ColumnExpressions{Expression::create_column(ColumnID{0}), Expression::create_column(ColumnID{1})});
+      ProjectionColumnDefinitions{Expression::create_column(ColumnID{0}), Expression::create_column(ColumnID{1})});
   projection->execute();
 
   auto union_all = std::make_shared<UnionAll>(projection, _table_wrapper_b);

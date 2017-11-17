@@ -79,7 +79,17 @@ std::shared_ptr<AbstractOperator> ASTToOperatorTranslator::_translate_projection
   const auto left_child = node->left_child();
   const auto input_operator = translate_node(node->left_child());
   const auto projection_node = std::dynamic_pointer_cast<ProjectionNode>(node);
-  return std::make_shared<Projection>(input_operator, projection_node->column_expressions());
+
+  const auto& column_expressions = projection_node->column_expressions();
+
+  ProjectionColumnDefinitions column_definitions;
+  column_definitions.reserve(column_expressions.size());
+
+  for (const auto &column_expression : column_expressions) {
+    column_definitions.emplace_back(column_expression, column_expression->alias());
+  }
+
+  return std::make_shared<Projection>(input_operator, column_definitions);
 }
 
 std::shared_ptr<AbstractOperator> ASTToOperatorTranslator::_translate_sort_node(
@@ -176,8 +186,12 @@ std::shared_ptr<AbstractOperator> ASTToOperatorTranslator::_translate_aggregate_
    *  TODO(anybody): this might result in the same columns being created multiple times. Improve.
    */
   if (need_projection) {
-    Projection::ColumnExpressions column_expressions = Expression::create_columns(groupby_columns);
-    column_expressions.reserve(groupby_columns.size() + aggregate_expressions.size());
+    ProjectionColumnDefinitions column_definitions;
+    column_definitions.reserve(groupby_columns.size() + aggregate_expressions.size());
+    for (const auto &groupby_column : groupby_columns) {
+      column_definitions.emplace_back(Expression::create_column(groupby_column));
+    }
+
 
     // The Projection will only select columns used in the Aggregate, i.e., GROUP BY columns and expressions.
     // Unused columns are skipped – therefore, the ColumnIDs might change.
@@ -200,7 +214,7 @@ std::shared_ptr<AbstractOperator> ASTToOperatorTranslator::_translate_aggregate_
       }
 
       // Add original expression of the function to the Projection.
-      column_expressions.emplace_back(aggregate_expression->expression_list()[0]);
+      column_definitions.emplace_back(aggregate_expression->expression_list()[0]);
 
       // Create a ColumnReference expression for the column id of the Projection.
       const auto column_ref_expr = Expression::create_column(ColumnID{current_column_id});
@@ -210,7 +224,7 @@ std::shared_ptr<AbstractOperator> ASTToOperatorTranslator::_translate_aggregate_
       aggregate_expression->set_expression_list({column_ref_expr});
     }
 
-    aggregate_input_operator = std::make_shared<Projection>(aggregate_input_operator, column_expressions);
+    aggregate_input_operator = std::make_shared<Projection>(aggregate_input_operator, column_definitions);
   }
 
   /**
@@ -265,7 +279,13 @@ std::shared_ptr<AbstractOperator> ASTToOperatorTranslator::_translate_update_nod
 
   auto new_value_exprs = update_node->column_expressions();
 
-  auto projection = std::make_shared<Projection>(input_operator, new_value_exprs);
+  ProjectionColumnDefinitions column_definitions;
+  column_definitions.reserve(new_value_exprs.size());
+  for (const auto& value_expr : new_value_exprs) {
+    column_definitions.emplace_back(value_expr);
+  }
+
+  auto projection = std::make_shared<Projection>(input_operator, column_definitions);
   return std::make_shared<Update>(update_node->table_name(), input_operator, projection);
 }
 

@@ -28,13 +28,14 @@ struct CaseDefinition {
 
   std::vector<When> whens;
   std::optional<AllParameterVariant> else_value;
+  std::string result_type;
 
   std::string to_string() const;
 };
 
 struct ProjectionColumnDefinition final {
-  ProjectionColumnDefinition(const std::shared_ptr<Expression> & expression, std::optional<std::string> & alias = std::nullopt);
-  ProjectionColumnDefinition(const CaseDefinition & expression, std::optional<std::string> & alias = std::nullopt);
+  ProjectionColumnDefinition(const std::shared_ptr<Expression> & expression, const std::optional<std::string> & alias = std::nullopt);
+  ProjectionColumnDefinition(const CaseDefinition & expression, const std::optional<std::string> & alias = std::nullopt);
 
   boost::variant<std::shared_ptr<Expression>, CaseDefinition> value;
   std::optional<std::string> alias;
@@ -49,7 +50,7 @@ using ProjectionColumnDefinitions = std::vector<ProjectionColumnDefinition>;
  */
 class Projection : public AbstractReadOnlyOperator {
  public:
-  Projection(const std::shared_ptr<const AbstractOperator> in, const ProjectionColumnDefinitions& column_expressions);
+  Projection(const std::shared_ptr<const AbstractOperator> in, const ProjectionColumnDefinitions& column_definitions);
 
   const std::string name() const override;
 

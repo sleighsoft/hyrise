@@ -96,9 +96,13 @@ TEST_F(ASTToOperatorTranslatorTest, ProjectionNode) {
 
   const auto projection_op = std::dynamic_pointer_cast<Projection>(op);
   ASSERT_TRUE(projection_op);
-  EXPECT_EQ(projection_op->column_expressions().size(), 1u);
-  EXPECT_EQ(projection_op->column_expressions()[0]->column_id(), ColumnID{0});
-  EXPECT_EQ(*projection_op->column_expressions()[0]->alias(), "a");
+  EXPECT_EQ(projection_op->column_definitions().size(), 1u);
+
+  const auto &column_definition = projection_op->column_definitions()[0];
+  ASSERT_EQ(column_definition.value.type(), typeid(std::shared_ptr<Expression>));
+  const auto &column_expression = boost::get<std::shared_ptr<Expression>>(column_definition.value);
+  EXPECT_EQ(column_expression->column_id(), ColumnID{0});
+  EXPECT_EQ(*column_expression->alias(), "a");
 }
 
 TEST_F(ASTToOperatorTranslatorTest, SortNode) {
@@ -212,14 +216,14 @@ TEST_F(ASTToOperatorTranslatorTest, AggregateNodeWithArithmetics) {
   const auto projection_op = std::dynamic_pointer_cast<const Projection>(left_op);
   ASSERT_TRUE(projection_op);
 
-  const auto column_expressions = projection_op->column_expressions();
-  ASSERT_EQ(column_expressions.size(), 2u);
+  const auto column_definitions = projection_op->column_definitions();
+  ASSERT_EQ(column_definitions.size(), 2u);
 
-  const auto column_expression0 = column_expressions[0];
+  const auto column_expression0 = boost::get<std::shared_ptr<Expression>>(column_definitions[0].value);
   EXPECT_EQ(column_expression0->type(), ExpressionType::Column);
   EXPECT_EQ(column_expression0->column_id(), ColumnID{0});
 
-  const auto column_expression1 = column_expressions[1];
+  const auto column_expression1 = boost::get<std::shared_ptr<Expression>>(column_definitions[1].value);
   EXPECT_EQ(column_expression1->to_string(), "ColumnID #1 * 2");
   EXPECT_EQ(column_expression1->alias(), std::nullopt);
 }
