@@ -25,8 +25,10 @@ if [ ! -z "$2" ]
 then
     # generate XML for pycobertura
     gcovr -r `pwd` --gcov-executable="gcov -s `pwd` -x" -p --exclude='.*/(?:third_party|src/test|src/benchmark).*' --exclude-unreachable-branches -g --xml > coverage.xml
+    echo curl
     curl -g -o coverage_master.xml https://ares.epic.hpi.uni-potsdam.de/jenkins/job/Hyrise/job/hyrise/job/mrks%2Fpycobertura/lastStableBuild/artifact/coverage.xml
-    pycobertura diff coverage_master.xml coverage.xml --format html --output coverage_diff.html
+    echo pycobertura
+    pycobertura diff coverage_master.xml coverage.xml --format html --output coverage_diff.html 2>&1
 
     # coverage badge generation
     coverage_percent=$(cat coverage_output.txt | grep lines: | sed -e 's/lines: //; s/% .*$//')
