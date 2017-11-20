@@ -49,8 +49,9 @@ node {
             lintFails = sh script: "./scripts/lint.sh post || true", returnStdout: true
             if (lintFails?.trim()) {
               echo lintFails
-              writeFile file: post_lint.txt, text: lintFails
-              githubNotify context: 'Strict Lint', status: 'ERROR', description: "Check Jenkins Step moreLint for details", targetUrl: "${env.BUILD_URL}/RCov_Report/artifacts/post_lint.txt"
+              writeFile file: "post_lint.txt", text: lintFails
+              archive "post_lint.txt"
+              githubNotify context: 'Strict Lint', status: 'ERROR', description: "Check Jenkins Step moreLint for details", targetUrl: "${env.BUILD_URL}/artifact/post_lint.txt"
             } else {
               githubNotify context: 'Strict Lint', status: 'SUCCESS'
             }
@@ -92,6 +93,7 @@ node {
           archive 'coverage_badge.svg'
           archive 'coverage_percent.txt'
           archive 'coverage.xml'
+          archive 'coverage_diff.html'
           publishHTML (target: [
             allowMissing: false,
             alwaysLinkToLastBuild: false,
