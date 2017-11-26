@@ -107,15 +107,15 @@ std::vector<std::shared_ptr<AbstractLQPNode>> SQLTranslator::translate_parse_res
 std::shared_ptr<AbstractLQPNode> SQLTranslator::translate_statement(const hsql::SQLStatement& statement) {
   switch (statement.type()) {
     case hsql::kStmtSelect:
-      return _translate_select((const hsql::SelectStatement&)statement);
+      return _translate_select(static_cast<const hsql::SelectStatement&>(statement));
     case hsql::kStmtInsert:
-      return _translate_insert((const hsql::InsertStatement&)statement);
+      return _translate_insert(static_cast<const hsql::InsertStatement&>(statement));
     case hsql::kStmtDelete:
-      return _translate_delete((const hsql::DeleteStatement&)statement);
+      return _translate_delete(static_cast<const hsql::DeleteStatement&>(statement));
     case hsql::kStmtUpdate:
-      return _translate_update((const hsql::UpdateStatement&)statement);
+      return _translate_update(static_cast<const hsql::UpdateStatement&>(statement));
     case hsql::kStmtShow:
-      return _translate_show((const hsql::ShowStatement&)statement);
+      return _translate_show(static_cast<const hsql::ShowStatement&>(statement));
     default:
       Fail("SQL statement type not supported");
       return {};
