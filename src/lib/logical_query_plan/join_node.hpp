@@ -20,6 +20,7 @@ class JoinNode : public AbstractLQPNode {
  public:
   explicit JoinNode(const JoinMode join_mode);
 
+
   JoinNode(const JoinMode join_mode, const std::pair<ColumnID, ColumnID>& join_column_ids, const ScanType scan_type);
 
   const std::optional<std::pair<ColumnID, ColumnID>>& join_column_ids() const;
@@ -44,6 +45,7 @@ class JoinNode : public AbstractLQPNode {
 
  protected:
   void _on_child_changed() override;
+  std::shared_ptr<AbstractLQPNode> _clone_impl() const override;
 
  private:
   JoinMode _join_mode;

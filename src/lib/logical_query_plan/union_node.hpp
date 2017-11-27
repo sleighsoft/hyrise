@@ -13,6 +13,7 @@ class UnionNode : public AbstractLQPNode {
  public:
   explicit UnionNode(UnionMode union_mode);
 
+
   UnionMode union_mode() const;
 
   std::string description() const override;
@@ -32,6 +33,9 @@ class UnionNode : public AbstractLQPNode {
   bool knows_table(const std::string& table_name) const override;
 
   std::vector<ColumnID> get_output_column_ids_for_table(const std::string& table_name) const override;
+
+ protected:
+  std::shared_ptr<AbstractLQPNode> _clone_impl() const override;
 
  private:
   UnionMode _union_mode;

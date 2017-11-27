@@ -26,6 +26,7 @@ class PredicateNode : public AbstractLQPNode {
   PredicateNode(const ColumnID column_id, const ScanType scan_type, const AllParameterVariant& value,
                 const std::optional<AllTypeVariant>& value2 = std::nullopt);
 
+
   std::string description() const override;
 
   const ColumnID column_id() const;
@@ -36,6 +37,9 @@ class PredicateNode : public AbstractLQPNode {
   std::shared_ptr<TableStatistics> derive_statistics_from(
       const std::shared_ptr<AbstractLQPNode>& left_child,
       const std::shared_ptr<AbstractLQPNode>& right_child = nullptr) const override;
+
+ protected:
+  std::shared_ptr<AbstractLQPNode> _clone_impl() const override;
 
  private:
   const ColumnID _column_id;

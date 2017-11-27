@@ -13,9 +13,13 @@ class LimitNode : public AbstractLQPNode {
  public:
   explicit LimitNode(const size_t num_rows);
 
+
   std::string description() const override;
 
   size_t num_rows() const;
+
+ protected:
+  std::shared_ptr<AbstractLQPNode> _clone_impl() const override;
 
  private:
   const size_t _num_rows;

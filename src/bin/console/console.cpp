@@ -211,7 +211,6 @@ int Console::_eval_command(const CommandFunction& func, const std::string& comma
 }
 
 int Console::_eval_sql(const std::string& sql) {
-  SQLQueryPlan plan;
   hsql::SQLParserResult parse_result;
 
   // Measure the query parse time
@@ -238,6 +237,7 @@ int Console::_eval_sql(const std::string& sql) {
   started = std::chrono::high_resolution_clock::now();
 
   // Compile the parse result
+  SQLQueryPlan plan;
   try {
     plan = SQLPlanner::plan(parse_result);
   } catch (const std::exception& exception) {

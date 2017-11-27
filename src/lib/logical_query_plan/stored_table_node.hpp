@@ -20,6 +20,7 @@ class StoredTableNode : public AbstractLQPNode {
  public:
   explicit StoredTableNode(const std::string& table_name);
 
+
   const std::string& table_name() const;
 
   std::string description() const override;
@@ -40,6 +41,7 @@ class StoredTableNode : public AbstractLQPNode {
   std::string get_verbose_column_name(ColumnID column_id) const override;
 
  protected:
+  std::shared_ptr<AbstractLQPNode> _clone_impl() const override;
   void _on_child_changed() override;
 
  private:
