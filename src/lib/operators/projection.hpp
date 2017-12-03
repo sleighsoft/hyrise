@@ -23,7 +23,7 @@ namespace opossum {
 struct CaseDefinition {
   struct When {
     ColumnID condition_column = INVALID_COLUMN_ID;
-    AllParameterVariant then_value;
+    AllParameterVariant then_value = INVALID_COLUMN_ID;
   };
 
   std::vector<When> whens;
