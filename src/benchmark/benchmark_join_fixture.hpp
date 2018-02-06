@@ -16,6 +16,8 @@ class BenchmarkJoinFixture : public benchmark::Fixture {
   static void ChunkSizeInUni(benchmark::internal::Benchmark* b);
   static void ChunkSizeInPareto(benchmark::internal::Benchmark* b);
   static void ChunkSizeInNormal(benchmark::internal::Benchmark* b);
+  static void ChunkSizeInDisjunct(benchmark::internal::Benchmark* b);
+  static void ChunkSizeInCompIndex(benchmark::internal::Benchmark* b);
 
  protected:
   void clear_cache();

@@ -11,6 +11,10 @@
 #include "table_generator.hpp"
 #include "types.hpp"
 
+namespace {
+enum class BenchmarkScenario { Normal, Uniform, Pareto, Disjunct, CompositeGroupKeyIndex };
+}
+
 namespace opossum {
 
 void BenchmarkJoinFixture::SetUp(::benchmark::State& state) {
@@ -18,21 +22,28 @@ void BenchmarkJoinFixture::SetUp(::benchmark::State& state) {
 
   auto table_generator = std::make_shared<TableGenerator>();
 
-  Distribution right_distribution = static_cast<Distribution>(state.range(2));
+  BenchmarkScenario benchmark_scenario = static_cast<BenchmarkScenario>(state.range(2));
 
-  auto left_config = ColumnConfiguration::make_uniform_config(0.0, 10000);
+  auto left_config = ColumnConfiguration::make_uniform_config(0, 10000);
 
   ColumnConfiguration right_config;
 
-  switch (right_distribution) {
-    case Distribution::normal_skewed:
+  switch (benchmark_scenario) {
+    case BenchmarkScenario::Normal:
       right_config = ColumnConfiguration::make_skewed_normal_config();
       break;
-    case Distribution::pareto:
+    case BenchmarkScenario::Pareto:
       right_config = ColumnConfiguration::make_pareto_config();
       break;
-    case Distribution::uniform:
-      right_config = ColumnConfiguration::make_uniform_config(0.0, 10000);
+    case BenchmarkScenario::Uniform:
+      right_config = ColumnConfiguration::make_uniform_config(0, 10000);
+      break;
+    case BenchmarkScenario::Disjunct:
+      right_config = ColumnConfiguration::make_uniform_config(20000, 30000);
+      break;
+    case BenchmarkScenario::CompositeGroupKeyIndex:
+      right_config = ColumnConfiguration::make_uniform_config(0, 10000);
+      break;
   }
 
   auto table_1 = table_generator->generate_table(std::vector<ColumnConfiguration>{left_config}, state.range(0),
@@ -47,7 +58,12 @@ void BenchmarkJoinFixture::SetUp(::benchmark::State& state) {
       std::vector<ColumnID> columns{1};
       for (ColumnID column_id{0}; column_id < chunk->column_count(); ++column_id) {
         columns[0] = column_id;
-        chunk->create_index<AdaptiveRadixTreeIndex>(columns);
+
+        if (benchmark_scenario == BenchmarkScenario::CompositeGroupKeyIndex) {
+          chunk->create_index<CompositeGroupKeyIndex>(columns);
+        } else {
+          chunk->create_index<AdaptiveRadixTreeIndex>(columns);
+        }
       }
     }
   }
@@ -65,8 +81,8 @@ void BenchmarkJoinFixture::ChunkSizeInUni(benchmark::internal::Benchmark* b) {
     for (int right_size : {100, 1000, 10000, 100000, 1000000, 5000000}) {
       // make sure we do not overrun our memory capacity
       if (static_cast<uint64_t>(left_size) * static_cast<uint64_t>(right_size) <= 1e9) {
-        b->Args(
-            {left_size, right_size, static_cast<int>(Distribution::uniform)});  // left size, right size, distribution
+        b->Args({left_size, right_size,
+                 static_cast<int>(BenchmarkScenario::Uniform)});  // left size, right size, BenchmarkScenario
       }
     }
   }
@@ -78,7 +94,7 @@ void BenchmarkJoinFixture::ChunkSizeInNormal(benchmark::internal::Benchmark* b) 
       // make sure we do not overrun our memory capacity
       if (static_cast<uint64_t>(left_size) * static_cast<uint64_t>(right_size) <= 1e9) {
         b->Args({left_size, right_size,
-                 static_cast<int>(Distribution::normal_skewed)});  // left size, right size, distribution
+                 static_cast<int>(BenchmarkScenario::Normal)});  // left size, right size, BenchmarkScenario
       }
     }
   }
@@ -88,8 +104,32 @@ void BenchmarkJoinFixture::ChunkSizeInPareto(benchmark::internal::Benchmark* b) 
     for (int right_size : {100, 1000, 10000, 100000, 1000000, 5000000}) {
       // make sure we do not overrun our memory capacity
       if (static_cast<uint64_t>(left_size) * static_cast<uint64_t>(right_size) <= 1e9) {
-        b->Args(
-            {left_size, right_size, static_cast<int>(Distribution::pareto)});  // left size, right size, distribution
+        b->Args({left_size, right_size,
+                 static_cast<int>(BenchmarkScenario::Pareto)});  // left size, right size, BenchmarkScenario
+      }
+    }
+  }
+}
+
+void BenchmarkJoinFixture::ChunkSizeInDisjunct(benchmark::internal::Benchmark* b) {
+  for (int left_size : {100, 1000, 10000, 100000, 1000000}) {
+    for (int right_size : {100, 1000, 10000, 100000, 1000000, 5000000}) {
+      // make sure we do not overrun our memory capacity
+      if (static_cast<uint64_t>(left_size) * static_cast<uint64_t>(right_size) <= 1e9) {
+        b->Args({left_size, right_size,
+                 static_cast<int>(BenchmarkScenario::Disjunct)});  // left size, right size, BenchmarkScenario
+      }
+    }
+  }
+}
+
+void BenchmarkJoinFixture::ChunkSizeInCompIndex(benchmark::internal::Benchmark* b) {
+  for (int left_size : {100, 1000, 10000, 100000, 1000000}) {
+    for (int right_size : {100, 1000, 10000, 100000, 1000000, 5000000}) {
+      // make sure we do not overrun our memory capacity
+      if (static_cast<uint64_t>(left_size) * static_cast<uint64_t>(right_size) <= 1e9) {
+        b->Args({left_size, right_size,
+                 static_cast<int>(BenchmarkScenario::CompositeGroupKeyIndex)});  // left size, right size, BenchmarkScenario
       }
     }
   }
