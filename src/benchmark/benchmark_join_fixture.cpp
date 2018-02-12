@@ -7,6 +7,7 @@
 #include "operators/table_wrapper.hpp"
 #include "storage/chunk.hpp"
 #include "storage/index/adaptive_radix_tree/adaptive_radix_tree_index.hpp"
+#include "storage/index/group_key/composite_group_key_index.hpp"
 #include "storage/storage_manager.hpp"
 #include "table_generator.hpp"
 #include "types.hpp"

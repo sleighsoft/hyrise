@@ -17,9 +17,9 @@ BENCHMARK_DEFINE_F(BenchmarkJoinFixture, BM_JoinHash)(benchmark::State& state) {
   auto warm_up =
       std::make_shared<JoinHash>(_tw_small_uni1, _tw_small_uni2, JoinMode::Inner,
                                  std::pair<ColumnID, ColumnID>{ColumnID{0}, ColumnID{0}}, PredicateCondition::Equals);
-  state.counters["matches"] = warm_up->get_ouput()->row_count();
-
   warm_up->execute();
+
+  state.counters["matches"] = warm_up->get_output()->row_count();
   while (state.KeepRunning()) {
     auto table_scan =
         std::make_shared<JoinHash>(_tw_small_uni1, _tw_small_uni2, JoinMode::Inner,
@@ -34,9 +34,9 @@ BENCHMARK_DEFINE_F(BenchmarkJoinFixture, BM_JoinSortMerge)(benchmark::State& sta
   auto warm_up = std::make_shared<JoinSortMerge>(_tw_small_uni1, _tw_small_uni2, JoinMode::Inner,
                                                  std::pair<ColumnID, ColumnID>{ColumnID{0}, ColumnID{0}},
                                                  PredicateCondition::Equals);
-  state.counters["matches"] = warm_up->get_ouput()->row_count();
-
   warm_up->execute();
+
+  state.counters["matches"] = warm_up->get_output()->row_count();
   while (state.KeepRunning()) {
     auto table_scan = std::make_shared<JoinSortMerge>(_tw_small_uni1, _tw_small_uni2, JoinMode::Inner,
                                                       std::pair<ColumnID, ColumnID>(ColumnID{0}, ColumnID{0}),
@@ -51,9 +51,10 @@ BENCHMARK_DEFINE_F(BenchmarkJoinFixture, BM_JoinNestedLoop)(benchmark::State& st
   auto warm_up = std::make_shared<JoinNestedLoop>(_tw_small_uni1, _tw_small_uni2, JoinMode::Inner,
                                                   std::pair<ColumnID, ColumnID>{ColumnID{0}, ColumnID{0}},
                                                   PredicateCondition::Equals);
-  state.counters["matches"] = warm_up->get_ouput()->row_count();
 
   warm_up->execute();
+
+  state.counters["matches"] = warm_up->get_output()->row_count();
   while (state.KeepRunning()) {
     auto table_scan = std::make_shared<JoinNestedLoop>(_tw_small_uni1, _tw_small_uni2, JoinMode::Inner,
                                                        std::pair<ColumnID, ColumnID>(ColumnID{0}, ColumnID{0}),
@@ -70,7 +71,7 @@ BENCHMARK_DEFINE_F(BenchmarkJoinFixture, BM_JoinIndex)(benchmark::State& state) 
                                   std::pair<ColumnID, ColumnID>{ColumnID{0}, ColumnID{0}}, PredicateCondition::Equals);
   warm_up->execute();
 
-  state.counters["matches"] = warm_up->get_ouput()->row_count();
+  state.counters["matches"] = warm_up->get_output()->row_count();
   while (state.KeepRunning()) {
     auto table_scan = std::make_shared<JoinIndex>(_tw_small_uni1, _tw_small_uni2, JoinMode::Inner,
                                                   std::pair<ColumnID, ColumnID>(ColumnID{0}, ColumnID{0}),
@@ -90,8 +91,17 @@ BENCHMARK_REGISTER_F(BenchmarkJoinFixture, BM_JoinSortMerge)
 BENCHMARK_REGISTER_F(BenchmarkJoinFixture, BM_JoinSortMerge)
     ->Iterations(1)
     ->Apply(BenchmarkJoinFixture::ChunkSizeInPareto);
+BENCHMARK_REGISTER_F(BenchmarkJoinFixture, BM_JoinSortMerge)
+    ->Iterations(1)
+    ->Apply(BenchmarkJoinFixture::ChunkSizeInDisjunct);
+BENCHMARK_REGISTER_F(BenchmarkJoinFixture, BM_JoinSortMerge)
+    ->Iterations(1)
+    ->Apply(BenchmarkJoinFixture::ChunkSizeInCompIndex);
 BENCHMARK_REGISTER_F(BenchmarkJoinFixture, BM_JoinIndex)->Iterations(1)->Apply(BenchmarkJoinFixture::ChunkSizeInUni);
-BENCHMARK_REGISTER_F(BenchmarkJoinFixture, BM_JoinIndex)->Iterations(1)->Apply(BenchmarkJoinFixture::ChunkSizeInNormal);
-BENCHMARK_REGISTER_F(BenchmarkJoinFixture, BM_JoinIndex)->Iterations(1)->Apply(BenchmarkJoinFixture::ChunkSizeInPareto);
+//BENCHMARK_REGISTER_F(BenchmarkJoinFixture, BM_JoinIndex)->Iterations(1)->Apply(BenchmarkJoinFixture::ChunkSizeInNormal);
+//BENCHMARK_REGISTER_F(BenchmarkJoinFixture, BM_JoinIndex)->Iterations(1)->Apply(BenchmarkJoinFixture::ChunkSizeInPareto);
+//BENCHMARK_REGISTER_F(BenchmarkJoinFixture, BM_JoinIndex)->Iterations(1)->Apply(BenchmarkJoinFixture::ChunkSizeInDisjunct);
+//BENCHMARK_REGISTER_F(BenchmarkJoinFixture, BM_JoinIndex)->Iterations(1)->Apply(BenchmarkJoinFixture::ChunkSizeInCompIndex);
+
 
 }  // namespace opossum
