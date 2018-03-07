@@ -76,7 +76,7 @@ std::shared_ptr<Table> TableGenerator::generate_table(const ChunkID chunk_size, 
 
 std::shared_ptr<Table> TableGenerator::generate_table(const std::vector<ColumnConfiguration>& column_configurations,
                                                       const size_t num_rows, const size_t chunk_size,
-                                                      const bool compress) {
+                                                      const bool compress, const bool numa) {
   const auto num_columns = column_configurations.size();
   const auto num_chunks = std::ceil(static_cast<double>(num_rows) / static_cast<double>(chunk_size));
 
@@ -91,7 +91,13 @@ std::shared_ptr<Table> TableGenerator::generate_table(const std::vector<ColumnCo
     value_vectors.emplace_back(tbb::concurrent_vector<int>(chunk_size));
   }
 
-  auto chunk = std::make_shared<Chunk>();
+  std::shared_ptr<Chunk> chunk;
+
+  if(numa){
+      std::make_shared<Chunk>();
+  } else {
+      std::make_shared<Chunk>();
+  }
 
   std::random_device rd;
   // using mt19937 because std::default_random engine is not guaranteed to be a sensible default
