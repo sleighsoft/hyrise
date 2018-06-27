@@ -228,6 +228,8 @@ class RadixClusterSortNUMA {
 
     CurrentScheduler::wait_for_tasks(cluster_jobs);
 
+    Assert(output_table._chunk_columns.size() == _cluster_count, "error in clustering")
+
     return output_table;
   }
 
@@ -240,16 +242,18 @@ class RadixClusterSortNUMA {
 
     auto radix_bitmask = _cluster_count - 1;
 
-    output->resize(_cluster_count);
+    output->resize(input_chunks->size());
 
     std::vector<std::shared_ptr<AbstractTask>> cluster_jobs;
 
-    for (NodeID node_id{0}; node_id < _cluster_count; node_id++) {
-      Assert(node_id < input_chunks->size(),
-             "Node ID out of range: " + std::to_string(node_id) + " " + std::to_string(_cluster_count));
+    for (size_t partition_id{0}; partition_id < output->size(); partition_id++) {
+      const NodeID node_id = (*input_chunks)[partition_id]._node_id;
 
-      auto job = std::make_shared<JobTask>([&output, &input_chunks, node_id, radix_bitmask, this]() {
-        (*output)[node_id] = _cluster((*input_chunks)[node_id],
+      Assert(partition_id < input_chunks->size(),
+             "Node ID out of range: " + std::to_string(partition_id) + " " + std::to_string(_cluster_count));
+
+      auto job = std::make_shared<JobTask>([&output, &input_chunks, &node_id, partition_id, radix_bitmask, this]() {
+        (*output)[partition_id] = _cluster((*input_chunks)[partition_id],
                                       [=](const T& value) { return get_radix<T>(value, radix_bitmask); }, node_id);
       });
 
@@ -272,9 +276,11 @@ class RadixClusterSortNUMA {
     std::vector<size_t> cluster_sizes;
     cluster_sizes.resize(_cluster_count, 0);
 
+    Assert(private_partitions->size() == 1, "Too many NUMA Partitions");
+
     for (const auto& partition : (*private_partitions)) {
       DebugAssert(partition._chunk_columns.size() == _cluster_count,
-                  "Number of clusters does not match the number of NUMA partitions.");
+                  "Number of clusters does not match the number of NUMA partitions");
       for (size_t cluster_id = 0; cluster_id < _cluster_count; ++cluster_id) {
         cluster_sizes[cluster_id] += partition._chunk_columns[cluster_id]->size();
       }
@@ -282,11 +288,15 @@ class RadixClusterSortNUMA {
 
     std::vector<std::shared_ptr<AbstractTask>> repartition_jobs;
 
-    for (NodeID numa_node{0}; numa_node < _cluster_count; ++numa_node) {
+
+    const NodeID numa_node_count = static_cast<NodeID>(private_partitions->back()._node_id + NodeID{1});
+
+    for (size_t cluster_id{0}; cluster_id < _cluster_count; ++cluster_id) {
+        const NodeID numa_node = static_cast<NodeID>(cluster_id % numa_node_count);
       auto job = std::make_shared<JobTask>([this, numa_node, &private_partitions, &homogenous_partitions]() {
         homogenous_partitions->emplace_back(MaterializedNUMAPartition<T>(numa_node, 1));
 
-        auto& homogenous_partition = (*homogenous_partitions)[numa_node];
+        auto& homogenous_partition = (*homogenous_partitions).back();
 
         auto chunk_column = std::make_shared<MaterializedChunk<T>>();
         chunk_column->reserve(_cluster_count);

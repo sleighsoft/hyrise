@@ -181,7 +181,7 @@ class JoinMPSM::JoinMPSMImpl : public AbstractJoinOperatorImpl {
     const size_t numa_nodes = NUMAPlacementManager::get().topology()->nodes().size();
     return static_cast<ClusterID>(std::pow(2, std::floor(std::log2(numa_nodes))));
 #else
-    return ClusterID{1};
+    return ClusterID{2};
 #endif
   }
 
@@ -329,7 +329,8 @@ class JoinMPSM::JoinMPSMImpl : public AbstractJoinOperatorImpl {
 
     std::vector<bool> left_joined(left_cluster->size(), false);
 
-    for (NodeID right_node_id{0}; right_node_id < static_cast<NodeID>(_cluster_count); ++right_node_id) {
+    // current Problem: we do not generate all right_pos_lists required for the nulls in the Left Join Case
+    for (NodeID right_node_id{0}; right_node_id < _sorted_right_table->size(); ++right_node_id) {
       _output_pos_lists_right[right_node_id][right_cluster_id] = std::make_shared<PosList>();
 
       std::shared_ptr<MaterializedChunk<T>> right_cluster =
